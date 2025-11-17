@@ -1,15 +1,11 @@
-builtinModules.exports = function (...allowedRoles) {
+module.exports = function (...allowedRoles) {
   return (req, res, next) => {
-    if (!req.user)
-      return res.status(401).json({
-        msg: "Not authenticated",
-      });
+    const userRole = req.user?.role; // req.user should be set by JWT middleware
 
-    if (!allowedRoles.includesr(req.user.role)) {
-      return res
-        .status(403)
-        .json({ msg: "Forbidden: insufficient privileges" });
+    if (!allowedRoles.includes(userRole)) {
+      return res.status(403).json({ message: "Access denied!" });
     }
+
     next();
   };
 };

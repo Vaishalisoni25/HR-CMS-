@@ -27,6 +27,8 @@ const EmployeeSchema = new mongoose.Schema({
   LeavePolicy: { type: String, required: true },
 
   department: { type: String },
+
+  status: { enums: ["Active", "Inactive"] },
 });
 
 const Employee = mongoose.model("Employee", EmployeeSchema);

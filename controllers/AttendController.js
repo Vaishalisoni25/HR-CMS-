@@ -1,11 +1,37 @@
-const Attendance = require("../models/Attenddance");
+const Attendance = require("../models/Attendance");
 
 exports.markAttendance = async (req, res) => {
   try {
-    const { employee, status } = req.body;
-    const att = await Attendance.create({ employee, status });
-    res.json(att);
+    const {
+      employeeId,
+      employeeEmail,
+      employename,
+      status,
+      leavepolicy,
+      marked,
+    } = req.body;
+    const attendance = await Attendance.create({
+      employeeId,
+      employeeEmail,
+      employeeName,
+      status,
+      leavePolicy,
+      markedBy,
+    });
+    res.status(201).json(attendance);
   } catch (err) {
     res.status(400).json({ massage: err.massage });
+  }
+};
+
+exports.getAttendance = async (req, res) => {
+  try {
+    const attendance = await attendance.find({
+      employeeId: req.perams.employeeId,
+    });
+
+    res.json(attendance);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
 };

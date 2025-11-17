@@ -1,17 +1,26 @@
 const express = require("express");
+const connectDB = require("./db/connectDB");
 
 const app = express();
 const port = 3000;
 
-const connectDB = require("./db/connectDB");
+// Import routes
+const authRoutes = require("./routes/auth");
+const employeeRoutes = require("./routes/employeeRoute");
+const attendanceRoutes = require("./routes/attendanceRoute"); // Optional, if it exists
 
 connectDB();
 app.use(express.json());
 
-app.use("/api/auth", require("./routes/auth"));
-app.use("/api/employee", require("./employeeRoute"));
-app.use("/api/attendance", require("attendanceRoute"));
+// Use routes
+app.use("/auth", authRoutes);
+app.use("/employee", employeeRoutes);
+app.use("/attendance", attendanceRoutes);
+
+app.get("/", (req, res) => {
+  res.send("HR-CMS backend is runniiiing");
+});
 
 app.listen(port, () => {
-  console.log(`server is runnning on port ${port}`);
+  console.log(`server is running on port ${port}`);
 });
