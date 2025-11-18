@@ -5,9 +5,9 @@ const app = express();
 const port = 3000;
 
 // Import routes
-const authRoutes = require("./routes/auth");
-const employeeRoutes = require("./routes/employeeRoute");
-const attendanceRoutes = require("./routes/attendanceRoute"); // Optional, if it exists
+const authRoutes = require("./routes/auth.route");
+const employeeRoutes = require("./routes/employee.route");
+const attendanceRoutes = require("./routes/attendance.route"); // Optional, if it exists
 
 connectDB();
 app.use(express.json());
@@ -22,5 +22,5 @@ app.get("/", (req, res) => {
 });
 
 app.listen(port, () => {
-  console.log(`server is running on port ${port}`);
+  console.log(` Server is running at http://localhost:${port}`);
 });

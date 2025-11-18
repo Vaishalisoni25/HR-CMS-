@@ -2,9 +2,9 @@ const express = require("express");
 const {
   createEmployee,
   getEmployee,
-} = require("../controllers/emplController");
-const auth = require("../middleware/JWT");
-const roleCheck = require("../middleware/Roles");
+} = require("../controllers/employee.controller");
+const auth = require("../middleware/auth.middleware");
+const roleCheck = require("../middleware/role.middleware");
 
 const router = express.Router();
 

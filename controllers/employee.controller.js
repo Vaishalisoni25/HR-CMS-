@@ -1,6 +1,6 @@
 const { validationResult } = require("express-validator");
-const Employee = require("../models/Employee");
-const { message } = require("statuses");
+const employee = require("../models/Employee");
+const { message } = require("status");
 
 exports.createEmployee = async (req, res) => {
   const errors = validationResult(req);
@@ -13,7 +13,7 @@ exports.createEmployee = async (req, res) => {
     let existing = await Employee.findOne({ empId });
     if (!existing)
       return res.status(400).json({ msg: " this Employee exists" });
-    const emp = new Employee({
+    const emp = new employee({
       empId,
       name,
       email,
@@ -45,7 +45,7 @@ exports.getEmployees = async (req, res) => {
 //update
 exports.updateEmployeeById = async (req, res) => {
   try {
-    const emp = await Employee.findByIdAndUpdate(req.params.id, req.body, {
+    const emp = await employee.findByIdAndUpdate(req.params.id, req.body, {
       new: true,
     });
     if (!emp) return res.status(404).json({ message: "Employee not found" });
@@ -58,7 +58,7 @@ exports.updateEmployeeById = async (req, res) => {
 //delete
 exports.deleteEmployeeById = async (req, res) => {
   try {
-    const emp = await Employee.findByIdAndDelete(req.params.id);
+    const emp = await employee.findByIdAndDelete(req.params.id);
     if (!emp) return res.status(404).json({ message: "Employee not found " });
     res.json({ message: "employee deleted successfully" });
   } catch (err) {
