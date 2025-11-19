@@ -1,19 +1,21 @@
 const express = require("express");
 const {
   createEmployee,
-  getEmployee,
+  getEmployees,
 } = require("../controllers/employee.controller");
 const auth = require("../middleware/auth.middleware");
-const roleCheck = require("../middleware/role.middleware");
+const validate = require("../middleware/validate.middleware");
+const { employeeSchema } = require("../validations/employee.validation");
+const { ROLES } = require("../config/constant");
 
 const router = express.Router();
 
-// Fetch employees (only accessible by HR or superadmin)
-router.get("/list", (req, res) => {
-  res.json({ message: "employee list is working!" }); // Test response
-});
-
-// Create employee entry (only accessible by superadmin and HR)
-router.post("/", auth, roleCheck("superadmin", "hr"), createEmployee);
+router.post(
+  "/",
+  auth([ROLES.SUPERADMIN, ROLES.HR]),
+  validate(employeeSchema),
+  createEmployee
+);
+router.get("/", auth([ROLES.SUPERADMIN, ROLES.HR]), getEmployees);
 
 module.exports = router;

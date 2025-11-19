@@ -1,37 +1,14 @@
 const Attendance = require("../models/attendance.model");
+const { ROLES } = require("../config/constant");
 
 exports.markAttendance = async (req, res) => {
-  try {
-    const {
-      employeeId,
-      employeeEmail,
-      employename,
-      status,
-      leavepolicy,
-      marked,
-    } = req.body;
-    const attendance = await Attendance.create({
-      employeeId,
-      employeeEmail,
-      employeeName,
-      status,
-      leavePolicy,
-      markedBy,
-    });
-    res.status(201).json(attendance);
-  } catch (err) {
-    res.status(400).json({ massage: err.massage });
-  }
+  const attendance = await Attendance.create(req.body);
+  res.status(201).json(attendance);
 };
 
 exports.getAttendance = async (req, res) => {
-  try {
-    const attendance = await attendance.find({
-      employeeId: req.perams.employeeId,
-    });
-
-    res.json(attendance);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
+  const filter =
+    req.user.role === ROLES.HR ? { companyCode: req.user.companyCode } : {};
+  const attendance = await Attendance.find(filter).populate("employeeId");
+  res.json(attendance);
 };

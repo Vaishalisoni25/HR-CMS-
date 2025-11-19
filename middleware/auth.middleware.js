@@ -1,26 +1,23 @@
-const JWT = require("jsonwebtoken");
+const jwt = require("jsonwebtoken");
+const { ROLES } = require("../config/constant");
 
-module.exports = function (req, res, next) {
-  const authHeader = req.headers.authorization;
-  if (!authHeader)
-    return res.status(401).json({ msg: "no token authorization denied" });
+module.exports = (allowedRoles = []) => {
+  return (req, res, next) => {
+    const token = req.headers.authorization?.split(" ")[1];
 
-  const token = authHeader.split("")[1];
-  if (!token) return res.status(401).json({ msg: "Token missing" });
+    if (!token) return res.status(401).json({ message: "NO Token Provided" });
 
-  try {
-    const decoded = JWT.verify(token, process.env.JWT_SECRET);
-    req.user = decoded;
-    next();
-  } catch (err) {
-    at;
-    return res.status(401).json({ msg: "not authanticated" });
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    if (!allowedRoles.includes(req.user.role)) {
-      return res
-        .status(403)
-        .json({ msg: "Forbidden: insufficient privileges" });
+      if (allowedRoles.length && !allowedRoles.includes(decoded.role)) {
+        return res.status(403).json({ message: "Access Denied" });
+      }
+
+      req.user = decoded; // decoded data to request for downstream use
+      next();
+    } catch (error) {
+      return res.status(401).json({ message: "Invalid Token" });
     }
-    next();
-  }
+  };
 };

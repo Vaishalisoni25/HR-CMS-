@@ -1,30 +1,20 @@
-const { types } = require("mime-types");
 const mongoose = require("mongoose");
 
-const attendanceSchema = new mongoose.Schema({
-  employeeId: { type: String, required: true },
-
-  employeeEmail: { type: String, required: true },
-
-  employeeName: { type: String, required: true },
-
-  date: { type: Date, required: true, default: Date.now },
-
-  Satuts: {
-    type: String,
-    required: true,
-    enum: ["present", "Leave"],
-  },
-
-  createdAt: { type: Date, default: Date.now },
-
-  markedBy: {
+const AttendanceSchema = new mongoose.Schema({
+  employeeId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "User",
+    ref: "Employee",
     required: true,
   },
-
-  LeavePolicy: { type: String, required: true },
+  date: {
+    type: Date,
+    required: true,
+  },
+  status: {
+    type: String,
+    enum: ["Absent", "Attended"],
+    required: true,
+  },
+  leavePolicy: String,
 });
-
-module.exports = mongoose.model("Attendance", attendanceSchema);
+module.exports = mongoose.model("Attendance", AttendanceSchema);
