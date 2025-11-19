@@ -14,3 +14,12 @@ exports.getEmployees = async (req, res) => {
 
   res.json(employees);
 };
+
+exports.getEmployeeById = async (req, res) => {
+  const employee = await Employe.findById(req.param.id);
+
+  if (!employee) {
+    return res.status(404).json({ msg: "Employee not found" });
+  }
+  res.json(employee);
+};
