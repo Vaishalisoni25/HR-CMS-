@@ -1,26 +1,26 @@
+require("dotenv").config();
+const routes = require("./routes/auth.route");
 const express = require("express");
-const connectDB = require("./db/connectDB");
+const connectDB = require("./config/connectDB");
 
 const app = express();
-const port = 3000;
-
-// Import routes
-const authRoutes = require("./routes/auth");
-const employeeRoutes = require("./routes/employeeRoute");
-const attendanceRoutes = require("./routes/attendanceRoute"); // Optional, if it exists
 
 connectDB();
+
 app.use(express.json());
 
-// Use routes
-app.use("/auth", authRoutes);
-app.use("/employee", employeeRoutes);
-app.use("/attendance", attendanceRoutes);
+// Routes
+app.use("/api/auth", require("./routes/auth.route"));
+app.use("/api/employees", require("./routes/employee.route"));
+app.use("/api/attendance", require("./routes/employee.route"));
 
-app.get("/", (req, res) => {
-  res.send("HR-CMS backend is runniiiing");
+// Global error handler
+app.use((err, req, res, next) => {
+  console.error(err);
+  res.status(500).json({ message: err.message || "Server error" });
 });
 
-app.listen(port, () => {
-  console.log(`server is running on port ${port}`);
-});
+const PORT = process.env.PORT;
+app.listen(PORT, () =>
+  console.log(`Server running  at  http://localhost::${PORT}`)
+);
