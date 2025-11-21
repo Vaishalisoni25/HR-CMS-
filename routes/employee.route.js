@@ -3,8 +3,8 @@ const {
   createEmployee,
   getEmployees,
 } = require("../controllers/employee.controller");
-const auth = require("../middleware/auth.middleware");
-const validate = require("../middleware/validate.middleware");
+const auth = require("../middlewares/auth.middleware");
+const validate = require("../middlewares/validate.middleware");
 const { employeeSchema } = require("../validations/employee.validation");
 const { ROLES } = require("../config/constant");
 

@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const { number } = require("zod");
 
 const EmployeeSchema = new mongoose.Schema({
   name: String,
@@ -6,7 +7,16 @@ const EmployeeSchema = new mongoose.Schema({
   phone: String,
   companyCode: String,
   joiningDate: Date,
-  leavePolicy: String,
+  allowedLeaves: {
+    type: number,
+    default: 15,
+  },
+
+  usedleaves: {
+    type: number,
+    deflault: 0,
+  },
+
   department: String,
   status: { type: String, enum: ["Active", "Inactive"], default: "Active" },
 });
