@@ -1,14 +1,16 @@
-const express = require("express");
-const router = express.Router();
-const leaveController = require("../controllers/leave.contrroller");
+import { Router } from "express";
+const router = Router();
+import {
+  applyLeave,
+  getLeaves,
+  handleApproval,
+} from "../controllers/leave.contrroller.js";
 
-const {
+import {
   applyLeaveSchema,
-  approvalLeaveSchema,
   approvelSchema,
-} = require("../validations/leave.validation.js");
-const { ROLES } = require("../config/constant");
-const { schema } = require("../models/leave.model");
+} from "../validations/leave.validation.js";
+import { ROLES } from "../config/constant.js";
 
 //zod validation
 const validationZod = (schema) => (req, res, next) => {
@@ -18,21 +20,18 @@ const validationZod = (schema) => (req, res, next) => {
     req.body = schema.parse(req.body);
     next();
   } catch (err) {
-    return res.status(400).json({ msg: err.errors ? err.errors : err.message });
+    return res
+      .status(400)
+      .json({ msg: "validation error", errors: err.errors });
   }
 };
 
 //Auth middleware - expect function (allowed rolles => middleware )
 
-const auth = require("../middlewares/auth.middleware.js");
+import auth from "../middlewares/auth.middleware.js";
 
-router.post(
-  "/",
-  auth(),
-  validationZod(applyLeaveSchema),
-  leaveController.applyLeave
-);
-router.get("/", auth(), leaveController.getLeaves);
+router.post("/", auth(), validationZod(applyLeaveSchema), applyLeave);
+router.get("/", auth(), getLeaves);
 
 //HR?SUPERADMIN approve/reject
 
@@ -40,5 +39,6 @@ router.patch(
   "/:id/decision",
   auth([ROLES.HR, ROLES.SUPERADMIN]),
   validationZod(approvelSchema),
-  leaveController.handleApproval
+  handleApproval
 );
+export default router;

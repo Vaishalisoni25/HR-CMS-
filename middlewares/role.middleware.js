@@ -1,4 +1,4 @@
-module.exports = function (...allowedRoles) {
+export default function (...allowedRoles) {
   return (req, res, next) => {
     const userRole = req.user?.role; // req.user should be set by JWT middleware
 
@@ -8,4 +8,4 @@ module.exports = function (...allowedRoles) {
 
     next();
   };
-};
+}

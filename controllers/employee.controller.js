@@ -1,30 +1,30 @@
-const Employee = require("../models/employee.model");
-const { ROLES } = require("../config/constant");
+import Employee from "../models/employee.model.js";
+import { ROLES } from "../config/constant.js";
 
-exports.createEmployee = async (req, res) => {
+export async function createEmployee(req, res) {
   const employee = await Employee.create(req.body);
   res.status(201).json(employee);
-};
+}
 
-exports.getEmployees = async (req, res) => {
+export async function getEmployees(req, res) {
   const employees =
     req.user.role === ROLES.SUPERADMIN
       ? await Employee.find()
       : await Employee.find({ companyCode: req.user.companyCode });
 
   res.json(employees);
-};
+}
 
-exports.getEmployeeById = async (req, res) => {
-  const employee = await Employe.findById(req.param.id);
+export async function getEmployeeById(req, res) {
+  const employee = await Employee.findById(req.param.id);
 
   if (!employee) {
     return res.status(404).json({ msg: "Employee not found" });
   }
   res.json(employee);
-};
+}
 
-exports.UpdateEmployeeById = async (req, res) => {
+export async function UpdateEmployeeById(req, res) {
   try {
     const emp = await Employee.findByIdAndUpdate(req.paeams.id, req.body, {
       new: true,
@@ -35,9 +35,9 @@ exports.UpdateEmployeeById = async (req, res) => {
   } catch (err) {
     res.status(400).json({ message: err.message });
   }
-};
+}
 
-exports.deleteEmployeeById = async (req, res) => {
+export async function deleteEmployeeById(req, res) {
   try {
     const emp = await Employee.findByIdAndDelete(req.param.id);
     if (!emp) return res.status(404).json({ msg: "Employee not found" });
@@ -46,4 +46,4 @@ exports.deleteEmployeeById = async (req, res) => {
   } catch (err) {
     res.status(400).json({ message: err.message });
   }
-};
+}

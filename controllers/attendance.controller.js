@@ -1,85 +1,44 @@
-const Attendance = require("../models/attendance.model");
-const { ROLES } = require("../config/constant");
-const Employee = require("../models/employee.model");
+// attendance.controller.js
 
-exports.markAttendance = async (req, res) => {
+import Attendance from "../models/attendance.model.js";
+import { ROLES } from "../config/constant.js";
+
+// MARK ATTENDANCE
+export async function markAttendance(req, res) {
   try {
-    const { employeeId, date, status, LeaveType, isPaidleave } = req.body;
-    //fetch employee data
-    const employee = await Employee.findById(employeeId);
-    if (!employee) return res.status(404).json({ msg: "Employee not found" });
+    const { date, status } = req.body;
+    const employeeId = req.user.id;
 
-    //HR is marking a leave
-    if (status === "Leave" && isPaidleave === true) {
-      //check emp has remaining paid leaves
-      if (employee.usedleaves >= employee.allowedLeaves) {
-        return res.status(400).json({
-          msg: "Employee has no remaining paid leaves",
-        });
-      }
-    }
+    const d = new Date(date);
+    d.setHours(0, 0, 0, 0);
 
-    //check if attendance already exist for this date
-    let existing = await Attendance.findOne({ employeeId, date });
-    if (existing) {
-      if (
-        status === "Leave" &&
-        isPaidleave === true &&
-        existing.isPaidLeave === false
-      ) {
-        if (employee.usedLeaves >= employee.allowedleaves) {
-          return res.status(400).json({
-            msg: "Employee has no remaining paid leaves",
-          });
-        }
-        employee.usedLeaves += 1;
-        await employee.save();
-      }
+    const attendance = await Attendance.findOneAndUpdate(
+      { employeeId, date: d },
+      { employeeId, date: d, status },
+      { upsert: true, new: true }
+    );
 
-      //if changing from paid leave to non paid
-      if (
-        existing.status === "Leave" &&
-        existing.isPaidLeave === true &&
-        ispaidLeave === false
-      ) {
-        employee.usedleaves -= 1;
-        await employee.save();
-      }
-
-      existing.status = status;
-      existing.leaveType = leaveType || null;
-      existing.isPaidleave = isPaidleave;
-      await existing.save();
-
-      return res.json({ msg: "Attendance updated", data: existing });
-
-      //Create new attendance
-      const record = await Attendance.create({
-        employeeId,
-        date,
-        status,
-        leaveType: LeaveType || null,
-        isPaidLeave,
-      });
-
-      // count paid leave
-      if (status === "Leave" && ispaidLleave === true) {
-        employee.usedleaves += 1;
-        await employee.save();
-      }
-      return res.status(201).json({
-        msg: "Attendance marked",
-        data: record,
-      });
-    }
+    return res.json({ msg: "Attendance marked", attendance });
   } catch (err) {
-    return res.status(500).json({ msg: error.message });
+    return res.status(500).json({ msg: "Server error", error: err.message });
   }
-};
+}
 
-exports.getAttendance = async (req, res) => {
-  const filter =
-    req.user.role === ROLES.HR ? { companyCode: req.user.companyCode } : {};
-  const attendance = await Attendance.find(filter).populate("employeeId");
-  res.json(attendance);
-};
+// GET ATTENDANCE
+export async function getAttendance(req, res) {
+  try {
+    const user = req.user;
+    let filter = {};
+
+    if (user.role !== ROLES.HR && user.role !== ROLES.SUPERADMIN) {
+      filter.employeeId = user.id; // employee only sees own attendance
+    } else if (req.query.employeeId) {
+      filter.employeeId = req.query.employeeId; // HR/Superadmin can filter
+    }
+
+    const records = await Attendance.find(filter).sort({ date: -1 });
+    return res.json(records);
+  } catch (err) {
+    return res.status(500).json({ msg: "Server error", error: err.message });
+  }
+}
