@@ -1,26 +1,32 @@
-import { verify } from "jsonwebtoken";
+import jwt from "jsonwebtoken";
 
-export default function (req, res, next) {
-  const authHeader = req.headers.authorization;
-  if (!authHeader)
-    return res.status(401).json({ msg: "no token authorization denied" });
+import { ROLES } from "../config/constant.js"; // update the path as per your project
 
-  const token = authHeader.split("")[1];
-  if (!token) return res.status(401).json({ msg: "Token missing" });
+const { verify } = jwt;
 
-  try {
-    const decoded = verify(token, process.env.JWT_SECRET);
-    req.user = decoded;
-    next();
-  } catch (err) {
-    at;
-    return res.status(401).json({ msg: "not authanticated" });
+export default function authMiddleware(allowedRoles = []) {
+  return function (req, res, next) {
+    const authHeader = req.headers?.authorization;
+    if (!authHeader)
+      return res.status(401).json({ msg: "no token authorization denied" });
 
-    if (!allowedRoles.includes(req.user.role)) {
+    const token = authHeader.split(" ")[1];
+    if (!token) return res.status(401).json({ msg: "Token missing" });
+
+    try {
+      const decoded = verify(token, process.env.JWT_SECRET);
+      req.user = decoded;
+    } catch (err) {
+      return res.status(401).json({ msg: "not authenticated" });
+    }
+
+    // ✅ role checking (matches your constants)
+    if (allowedRoles.length > 0 && !allowedRoles.includes(req.user.role)) {
       return res
         .status(403)
         .json({ msg: "Forbidden: insufficient privileges" });
     }
+
     next();
-  }
+  };
 }
