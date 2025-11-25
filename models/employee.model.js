@@ -1,7 +1,7 @@
-const mongoose = require("mongoose");
-const { number } = require("zod");
+import { Schema, model } from "mongoose";
+import { number } from "zod";
 
-const EmployeeSchema = new mongoose.Schema({
+const EmployeeSchema = new Schema({
   name: String,
   email: String,
   phone: String,
@@ -12,7 +12,7 @@ const EmployeeSchema = new mongoose.Schema({
     default: 15,
   },
 
-  usedleaves: {
+  usedLeaves: {
     type: number,
     deflault: 0,
   },
@@ -21,4 +21,4 @@ const EmployeeSchema = new mongoose.Schema({
   status: { type: String, enum: ["Active", "Inactive"], default: "Active" },
 });
 
-module.exports = mongoose.model("Employee", EmployeeSchema);
+export default model("Employee", EmployeeSchema);

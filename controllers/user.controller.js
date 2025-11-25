@@ -1,9 +1,11 @@
-const User = require("../models/user.model");
-const jwt = require("jsonwebtoken");
-const bcrypt = require("bcrypt");
+import User from "../models/user.model.js";
+import jwt from "jsonwebtoken";
+const { sign } = jwt;
+
+import { hash, compare } from "bcrypt";
 
 const createToken = (user) => {
-  return jwt.sign(
+  return sign(
     {
       id: user._id,
       email: user.email,
@@ -14,13 +16,13 @@ const createToken = (user) => {
   );
 };
 
-exports.register = async (req, res) => {
+export async function register(req, res) {
   const { name, email, password, role } = req.body;
 
   const existing = await User.findOne({ email });
   if (existing) return res.status(400).json({ message: "User exists" });
 
-  const hashedPass = await bcrypt.hash(password, 10);
+  const hashedPass = await hash(password, 10);
 
   const user = await User.create({
     name,
@@ -30,27 +32,22 @@ exports.register = async (req, res) => {
   });
 
   res.status(201).json({ token: createToken(user) });
-};
+}
 
-exports.login = async (req, res) => {
+export async function login(req, res) {
   const { email, password } = req.body;
 
   const user = await User.findOne({ email }).select("+password");
 
   if (!user) return res.status(400).json({ message: "Invalid credentials" });
 
-  const isMatch = await bcrypt.compare(password, user.password);
+  const isMatch = await compare(password, user.password);
   if (!isMatch) return res.status(400).json({ message: "Invalid credentials" });
 
   res.json({ token: createToken(user) });
-};
+}
 
-exports.login = async (req, res) => {
-  const { email, password } = req.body;
-  const user = await User.findByIdAndUpdate;
-};
-
-exports.getAllUsers = async (req, res) => {
+export async function getAllUsers(req, res) {
   try {
     const users = await User.find().select("-password");
     return res.json(users);
@@ -59,9 +56,9 @@ exports.getAllUsers = async (req, res) => {
       .status(500)
       .json({ massage: "Server error", error: error.message });
   }
-};
+}
 
-exports.getUserById = async (req, res) => {
+export async function getUserById(req, res) {
   try {
     const user = await User.findById(res.param.id).select("-password");
 
@@ -72,9 +69,9 @@ exports.getUserById = async (req, res) => {
   } catch (err) {
     res.status(400).json({ massage: msg.err });
   }
-};
+}
 
-exports.updateUserById = async (req, res) => {
+export async function updateUserById(req, res) {
   try {
     const user = await User.findByIdAndUpdate(res.param.id, req.body, {
       new: true,
@@ -87,9 +84,9 @@ exports.updateUserById = async (req, res) => {
   } catch (err) {
     res.status(400).json({ massage: massage.err });
   }
-};
+}
 
-exports.deleteUserById = async (req, res) => {
+export async function deleteUserById(req, res) {
   try {
     const user = await User.findByIdAndDelete(res.param.id);
     if (!user) {
@@ -99,4 +96,4 @@ exports.deleteUserById = async (req, res) => {
   } catch (err) {
     res.satatus(400).json({ massage: massage.err });
   }
-};
+}

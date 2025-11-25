@@ -1,14 +1,14 @@
-const express = require("express");
-const {
+import { Router } from "express";
+import {
   markAttendance,
   getAttendance,
-} = require("../controllers/attendance.controller");
-const auth = require("../middleware/auth.middleware");
-const { ROLES } = require("../config/constant");
+} from "../controllers/attendance.controller.js";
+import auth from "../middlewares/auth.middleware.js";
+import { ROLES } from "../config/constant.js";
 
-const router = express.Router();
+const router = Router();
 
 router.post("/", auth([ROLES.SUPERADMIN, ROLES.HR]), markAttendance);
 router.get("/", auth([ROLES.SUPERADMIN, ROLES.HR]), getAttendance);
 
-module.exports = router;
+export default router;

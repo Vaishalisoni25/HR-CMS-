@@ -1,14 +1,14 @@
-const express = require("express");
-const {
+import { Router } from "express";
+import {
   createEmployee,
   getEmployees,
-} = require("../controllers/employee.controller");
-const auth = require("../middlewares/auth.middleware");
-const validate = require("../middlewares/validate.middleware");
-const { employeeSchema } = require("../validations/employee.validation");
-const { ROLES } = require("../config/constant");
+} from "../controllers/employee.controller.js";
+import auth from "../middlewares/auth.middleware.js";
+import validate from "../middlewares/validate.middleware.js";
+import { employeeSchema } from "../validations/employee.validation.js";
+import { ROLES } from "../config/constant.js";
 
-const router = express.Router();
+const router = Router();
 
 router.post(
   "/",
@@ -18,4 +18,4 @@ router.post(
 );
 router.get("/", auth([ROLES.SUPERADMIN, ROLES.HR]), getEmployees);
 
-module.exports = router;
+export default router;

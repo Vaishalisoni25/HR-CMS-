@@ -1,9 +1,8 @@
-const mongoose = require("mongoose");
-const LeaveSchema = new mongoose.Schema(
+import { Schema, model } from "mongoose";
+const LeaveSchema = new Schema(
   {
     employeeId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: Employee,
+      type: Schema.Types.ObjectId,
     },
     leaveType: {
       type: String,
@@ -16,12 +15,12 @@ const LeaveSchema = new mongoose.Schema(
     reason: { type: String, defoult: "" },
     status: {
       type: String,
-      enum: ["PENDING", "APROVED", "REJECED"],
+      enum: ["PENDING", "APPROVED", "REJECED"],
       defalt: "PENDING",
     },
 
     approvedBy: {
-      type: mongoose.Schema.Types.ObjectId,
+      type: Schema.Types.ObjectId,
       ref: "User",
       defalt: null,
     },
@@ -33,4 +32,4 @@ const LeaveSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-module.exports = mongoose.model("Leave", LeaveSchema);
+export default model("Leave", LeaveSchema);

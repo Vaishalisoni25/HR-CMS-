@@ -1,6 +1,6 @@
-const { z } = require("zod");
+import { z } from "zod";
 
-exports.employeeSchema = z.object({
+export const employeeSchema = z.object({
   name: z.string(),
   email: z.string().email(),
   phone: z.string().optional(),
