@@ -20,7 +20,6 @@ export default function authMiddleware(allowedRoles = []) {
       return res.status(401).json({ msg: "not authenticated" });
     }
 
-    // ✅ role checking (matches your constants)
     if (allowedRoles.length > 0 && !allowedRoles.includes(req.user.role)) {
       return res
         .status(403)
