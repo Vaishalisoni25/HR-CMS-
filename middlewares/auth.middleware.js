@@ -1,6 +1,6 @@
 import jwt from "jsonwebtoken";
 
-import { ROLES } from "../config/constant.js"; // update the path as per your project
+import { ROLES } from "../config/constant.js";
 
 const { verify } = jwt;
 
