@@ -7,7 +7,15 @@ const dateString = z.preprocess((arg) => {
 }, z.date());
 
 export const applyLeaveSchema = z.object({
-  leaveType: z.enum(["Annual", "Sick", "Casual", "Privilege", "WFH", "LWP"]),
+  leaveType: z.enum([
+    "Annual",
+    "Sick",
+    "Casual",
+    "Privilege",
+    "Halfday",
+    "WFH",
+    "LWP",
+  ]),
   FormData: dateString,
   toDate: dateString,
   reason: z.string().max(1000).optional(),

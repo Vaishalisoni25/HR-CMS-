@@ -5,7 +5,7 @@ import { ROLES, SALARY_STATUS } from "../config/constant.js";
 
 export async function generateSalary(req, res) {
   try {
-    const { employeeId, month, year, basicSalary, hra, da, bonus } = req.body;
+    const { employeeId, month, year, basicSalary, bonus } = req.body;
 
     const employee = await Employee.findById(employeeId);
 
@@ -29,8 +29,6 @@ export async function generateSalary(req, res) {
       month,
       year,
       basicSalary,
-      hra,
-      da,
       bonus,
 
       deduction: {

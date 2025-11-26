@@ -1,6 +1,7 @@
 export const ROLES = {
   SUPERADMIN: "superadmin",
   HR: "hr",
+  EMPLOYEE: "employee",
 };
 
 export const ATTENDANCE_STATUSES = {
@@ -18,8 +19,6 @@ export const LEAVE_TYPES = {
 };
 export const SALARY_COMPONENT = {
   BASIC_SALARY: "BASIC_SALARY",
-  HRA: "HRA",
-  DA: "DA",
   BONUS: "BONUS",
   PF: "PF",
 };

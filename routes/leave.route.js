@@ -15,8 +15,6 @@ import { ROLES } from "../config/constant.js";
 //zod validation
 const validationZod = (schema) => (req, res, next) => {
   try {
-    //parse and replace body (convert dates to Date object as needed )
-
     req.body = schema.parse(req.body);
     next();
   } catch (err) {

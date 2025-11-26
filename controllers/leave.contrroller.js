@@ -3,7 +3,7 @@ import Employee from "../models/employee.model.js";
 import Attendance from "../models/attendance.model.js";
 import { ROLES, ATTENDANCE_STATUSES, LEAVE_TYPES } from "../config/constant.js";
 
-// --- FIXED countDaysInclusive ---
+// --- countDaysInclusive ---
 const countDaysInclusive = (start, end) => {
   const s = new Date(start);
   const e = new Date(end);
@@ -46,7 +46,6 @@ export async function applyLeave(req, res) {
 
     const totalDays = countDaysInclusive(from, to);
 
-    // FIXED new Leave()
     const leave = new Leave({
       employeeId,
       leaveType,
@@ -71,12 +70,10 @@ export async function getLeaves(req, res) {
     const user = req.user;
     let filter = {};
 
-    // FIXED: role check spacing issue
     if (user.role !== ROLES.SUPERADMIN && user.role !== ROLES.HR) {
       filter.employeeId = user.id;
     }
 
-    // FIXED populate syntax
     const leaves = await Leave.find(filter).populate(
       "employeeId",
       "name email"

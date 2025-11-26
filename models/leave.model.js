@@ -6,11 +6,9 @@ const LeaveSchema = new Schema(
     },
     leaveType: {
       type: String,
-      enum: ["Annual", " Sick", "Casual", "Privilage", "WFH", "LWP"],
+      enum: ["Annual", " Sick", "Leave", "Halfday", "Privilage", "WFH", "LWP"],
       required: true,
     },
-    fromDate: { type: Date, required: true },
-    toDate: { type: Date, required: true },
     totalDays: { type: Number, required: true },
     reason: { type: String, defoult: "" },
     status: {

@@ -28,7 +28,7 @@ export async function register(req, res) {
     name,
     email,
     password: hashedPass,
-    role,
+    role: role,
   });
 
   res.status(201).json({ token: createToken(user) });
@@ -37,7 +37,7 @@ export async function register(req, res) {
 export async function login(req, res) {
   const { email, password } = req.body;
 
-  const user = await User.findOne({ email }).select("+password");
+  const user = await User.findOne({ email });
 
   if (!user) return res.status(400).json({ message: "Invalid credentials" });
 
@@ -49,7 +49,7 @@ export async function login(req, res) {
 
 export async function getAllUsers(req, res) {
   try {
-    const users = await User.find().select("-password");
+    const users = await User.find();
     return res.json(users);
   } catch (error) {
     return res
@@ -60,7 +60,7 @@ export async function getAllUsers(req, res) {
 
 export async function getUserById(req, res) {
   try {
-    const user = await User.findById(res.param.id).select("-password");
+    const user = await User.findById(res.param.id);
 
     if (!user) {
       return res.status(404).json({ massage: "User not found" });
