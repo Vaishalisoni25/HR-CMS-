@@ -21,7 +21,7 @@ const salarySchema = new Schema({
 
   deductions: {
     tds: { type: Number, default: 0 },
-    LWP: { type: Number, default: 0 },
+
     PF: { type: Number, default: 0 },
   },
 

@@ -9,17 +9,9 @@ import auth from "../middlewares/auth.middleware.js";
 
 const router = Router();
 
-router.post(
-  "/generateSalary",
-  auth([ROLES.SUPERADMIN, ROLES.HR]),
-  generateSalary
-);
-router.get("/getSalary/:id/employee", auth(), getSalary);
+router.post("/", auth([ROLES.SUPERADMIN, ROLES.HR]), generateSalary);
+router.get("/:id/employee", auth(), getSalary);
 
-router.put(
-  "/salary/update/:id",
-  auth([ROLES.SUPERADMIN, ROLES.HR]),
-  updateSalary
-);
+router.put("/update/:id", auth([ROLES.SUPERADMIN, ROLES.HR]), updateSalary);
 
 export default router;

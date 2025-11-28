@@ -14,35 +14,29 @@ export async function markAttendance(req, res) {
     if (!employeeId) {
       return res.status(400).json({ msg: "Employee ID is required" });
     }
-    if (!date || !status) {
-      return res.status(400).json({ msg: "Date and Status are required" });
+
+    if (!date) {
+      return res.status(400).json({ msg: "Date is required" });
+    }
+    if (!status) {
+      return res.status(400).json({ msg: "status is required" });
     }
 
     const d = new Date(date);
     d.setHours(0, 0, 0, 0);
-
-    //1) MARK ATTENDANCE
 
     const attendance = await Attendance.findOneAndUpdate(
       { employeeId, date: d },
       { employeeId, date: d, status, leaveType: leaveType || null },
       { upsert: true, new: true }
     );
-    //deduction
-
-    if (status === "Leave" && leaveType) {
-      const leave = await Leave.findOne({ employeeId });
-
-      if (leave) {
-        if (leaveType === "Privilege" && leave.privilege > 0) {
-          leave.privilege -= 1;
-        }
-        if (leaveType === "Sick" && leave.sick > 0) {
-          leave.sick -= 1;
-        }
-
-        await leave.save();
+    if (status === "Leave") {
+      const employee = await employee.findById(employeeId);
+      if (!employee) {
+        return res.status(404).json({ msg: "Employee not found" });
       }
+      employee.usedLeaves += 1;
+      await employee.save();
     }
 
     return res.json({
@@ -64,10 +58,11 @@ export async function getAttendance(req, res) {
     if (user.role !== ROLES.HR && user.role !== ROLES.SUPERADMIN) {
       filter.employeeId = user.id; // employee only sees own attendance
     } else if (req.query.employeeId) {
-      filter.employeeId = req.query.employeeId; // HR/Superadmin can filter by emplyoyee Id
+      filter.employeeId = req.query.employeeId;
     }
 
     //get by month /year
+
     const { month, year } = req.query;
     if (month && year) {
       filter.date = {

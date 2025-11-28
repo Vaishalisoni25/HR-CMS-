@@ -71,7 +71,7 @@ export async function getEmployeeById(req, res) {
   }
 }
 
-export async function UpdateEmployeeById(req, res) {
+export async function updateEmployeeById(req, res) {
   try {
     const empId = req.params.employeeId;
 
