@@ -1,33 +1,28 @@
 import { Schema, model } from "mongoose";
-const LeaveSchema = new Schema(
+const leaveBalanceSchema = new Schema(
   {
     employeeId: {
       type: Schema.Types.ObjectId,
-    },
-    leaveType: {
-      type: String,
-      enum: ["Annual", " Sick", "Leave", "Halfday", "Privilage", "WFH", "LWP"],
+      ref: "Employee",
       required: true,
     },
-    totalDays: { type: Number, required: true },
-    reason: { type: String, defoult: "" },
-    status: {
-      type: String,
-      enum: ["PENDING", "APPROVED", "REJECED"],
-      defalt: "PENDING",
+
+    sick: {
+      type: Number,
+      default: 1,
     },
 
-    approvedBy: {
-      type: Schema.Types.ObjectId,
-      ref: "User",
-      defalt: null,
+    privilege: {
+      type: Number,
+      default: 5,
     },
-    payrollDeduction: {
+    LWP: {
       type: Number,
       default: 0,
     },
   },
+
   { timestamps: true }
 );
 
-export default model("Leave", LeaveSchema);
+export default model("Leave", leaveBalanceSchema);

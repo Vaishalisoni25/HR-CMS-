@@ -1,8 +1,7 @@
 import { Router } from "express";
 import { generateSalary, getSalary } from "../controllers/salary.controller.js";
 
-import auth from "../middlewares/auth.middleware.js"; // <-- REQUIRED
-
+import auth from "../middlewares/auth.middleware.js";
 import { ROLES } from "../config/constant.js";
 
 const router = Router();

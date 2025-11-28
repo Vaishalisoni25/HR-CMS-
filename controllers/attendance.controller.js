@@ -1,38 +1,55 @@
-// attendance.controller.js
-
 import Attendance from "../models/attendance.model.js";
 import { ROLES } from "../config/constant.js";
+import Leave from "../models/leave.model.js";
 
-// MARK ATTENDANCE
 export async function markAttendance(req, res) {
   try {
     if (![ROLES.HR, ROLES.SUPERADMIN].includes(req.user.role)) {
-      return (
-        res.status(403),
-        json({ msg: "Only HR can Marked leave and attendance" })
-      );
+      return res.status(403).json({ msg: "Only HR can mark attendance" });
     }
+
     const { date, status, leaveType } = req.body;
     const employeeId = req.user.id;
+
     if (!employeeId) {
-      return res.status(400).json({ msg: "employee is required" });
+      return res.status(400).json({ msg: "Employee ID is required" });
     }
     if (!date || !status) {
-      return res.status(400).json({ msg: "date and status are required" });
+      return res.status(400).json({ msg: "Date and Status are required" });
     }
 
     const d = new Date(date);
     d.setHours(0, 0, 0, 0);
 
+    //1) MARK ATTENDANCE
+
     const attendance = await Attendance.findOneAndUpdate(
       { employeeId, date: d },
       { employeeId, date: d, status, leaveType: leaveType || null },
-
       { upsert: true, new: true }
     );
+    //deduction
+
+    if (status === "Leave" && leaveType) {
+      const leave = await Leave.findOne({ employeeId });
+
+      if (leave) {
+        if (leaveType === "Privilege" && leave.privilege > 0) {
+          leave.privilege -= 1;
+        }
+        if (leaveType === "Sick" && leave.sick > 0) {
+          leave.sick -= 1;
+        }
+        if (leaveType === "Privilege" && leave.privilege > 0) {
+          leave.privilege -= 1;
+        }
+
+        await leave.save();
+      }
+    }
 
     return res.json({
-      msg: "Attendance marked/ Leave Marked Successfully",
+      msg: "Attendance / Leave marked successfully",
       attendance,
     });
   } catch (err) {
@@ -43,6 +60,7 @@ export async function markAttendance(req, res) {
 // GET ATTENDANCE
 export async function getAttendance(req, res) {
   try {
+    const employeeId = req.body.employeeId;
     const user = req.user;
     let filter = {};
 
