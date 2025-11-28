@@ -5,7 +5,7 @@ export const ROLES = {
 };
 
 export const ATTENDANCE_STATUSES = {
-  PRESENT: "Present",
+  ATTENDED: "Attended",
   ABSENT: "Absent",
   LEAVE: "Leave",
   HALF_DAY: "halfDay",

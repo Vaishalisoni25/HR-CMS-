@@ -10,6 +10,12 @@ export async function getLeaveBalance(req, res) {
     if (!employeeId) {
       return res.status(400).json({ msg: "Employee ID is required" });
     }
+    if (res.user.role !== ROLES.HR && req.user.role !== ROLES.SUPERADMIN) {
+      if (req.user.id !== employeeId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+    }
+
     const leave = await leaveBalance.findOne({ employeeId });
     if (!leave) {
       return res.status(404).json({ msg: "Leave balance not found" });

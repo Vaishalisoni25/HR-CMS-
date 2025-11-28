@@ -5,6 +5,7 @@ const leaveBalanceSchema = new Schema(
       type: Schema.Types.ObjectId,
       ref: "Employee",
       required: true,
+      unique: true,
     },
 
     sick: {

@@ -1,7 +1,4 @@
 import { Schema, model } from "mongoose";
-import { Number } from "zod";
-import { Schema, model } from "mongoose";
-
 const EmployeeSchema = new Schema({
   name: String,
   email: String,

@@ -18,8 +18,8 @@ const createToken = (user) => {
 
 export async function register(req, res) {
   try {
-    if (req.user.role !== "hr" && req.user.role ! == "superadmin") {
-      return res.status(403).json({message: "Access denied"})
+    if (req.user.role !== "hr" && req.user.role !== "superadmin") {
+      return res.status(403).json({ message: "Access denied" });
     }
     const { name, email, password, role } = req.body;
 
@@ -67,12 +67,12 @@ export async function getAllUsers(req, res) {
 
 export async function getUserById(req, res) {
   try {
-     const { id } = req.params;
- 
-     if (req.user.role === "employee" && req.user.id !== id) {
+    const { id } = req.params;
+
+    if (req.user.role === "employee" && req.user.id !== id) {
       return res.status(403).json({ message: "Access denied" });
-     }
-    
+    }
+
     if (req.user.role === "employee") {
       return res.status(403).json({ message: "Access denied" });
     }

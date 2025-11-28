@@ -4,11 +4,6 @@ import { ROLES } from "../config/constant.js";
 
 export async function createEmployee(req, res) {
   try {
-    // Only HR or superadmin
-    if (req.user.role !== ROLES.HR && req.user.role !== ROLES.SUPERADMIN) {
-      return res.status(403).json({ message: "Access denied" });
-    }
-
     const {
       name,
       email,
@@ -18,6 +13,11 @@ export async function createEmployee(req, res) {
       department,
       companyCode,
     } = req.body;
+
+    const exists = await Employee.findOne({ email });
+    if (exists) {
+      return res.status(400).json({ message: "Email already exists" });
+    }
 
     const hashed = await bcrypt.hash(password, 10);
 
@@ -57,6 +57,10 @@ export async function getEmployeeById(req, res) {
     if (!empId)
       return res.status(400).json({ message: "Employee ID is required" });
 
+    if (req.user.role === ROLES.EMPLOYEE && req.user._id !== empId) {
+      return res.status(403).json({ message: "Access denied" });
+    }
+
     const employee = await Employee.findById(empId);
     if (!employee)
       return res.status(404).json({ message: "Employee not found" });
@@ -69,7 +73,7 @@ export async function getEmployeeById(req, res) {
 
 export async function UpdateEmployeeById(req, res) {
   try {
-    const empId = req.params.id;
+    const empId = req.params.employeeId;
 
     if (!empId)
       return res.status(400).json({ message: "Employee ID is required" });
@@ -88,7 +92,7 @@ export async function UpdateEmployeeById(req, res) {
 
 export async function deleteEmployeeById(req, res) {
   try {
-    const empId = req.params.id;
+    const empId = req.params.employeeId;
 
     if (!empId)
       return res.status(400).json({ message: "Employee ID is required" });

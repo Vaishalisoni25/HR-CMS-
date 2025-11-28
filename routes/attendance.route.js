@@ -8,7 +8,11 @@ import { ROLES } from "../config/constant.js";
 
 const router = Router();
 
-router.post("/", auth([ROLES.SUPERADMIN, ROLES.HR]), markAttendance);
-router.get("/", auth([ROLES.SUPERADMIN, ROLES.HR]), getAttendance);
+router.post(
+  "/markAttendance",
+  auth([ROLES.SUPERADMIN, ROLES.HR]),
+  markAttendance
+);
+router.get("/Attendance", auth(), getAttendance);
 
 export default router;

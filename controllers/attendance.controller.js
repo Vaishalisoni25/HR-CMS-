@@ -9,7 +9,7 @@ export async function markAttendance(req, res) {
     }
 
     const { date, status, leaveType } = req.body;
-    const employeeId = req.user.id;
+    const employeeId = req.user.employeeId;
 
     if (!employeeId) {
       return res.status(400).json({ msg: "Employee ID is required" });
@@ -39,9 +39,6 @@ export async function markAttendance(req, res) {
         }
         if (leaveType === "Sick" && leave.sick > 0) {
           leave.sick -= 1;
-        }
-        if (leaveType === "Privilege" && leave.privilege > 0) {
-          leave.privilege -= 1;
         }
 
         await leave.save();
