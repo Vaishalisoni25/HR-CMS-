@@ -1,37 +1,90 @@
 import Employee from "../models/employee.model.js";
+import bcrypt from "bcrypt";
 import { ROLES } from "../config/constant.js";
 
 export async function createEmployee(req, res) {
-  const employee = await Employee.create(req.body);
-  res.status(201).json(employee);
+  try {
+    const {
+      name,
+      email,
+      password,
+      phone,
+      joiningDate,
+      department,
+      companyCode,
+    } = req.body;
+
+    const exists = await Employee.findOne({ email });
+    if (exists) {
+      return res.status(400).json({ message: "Email already exists" });
+    }
+
+    const hashed = await bcrypt.hash(password, 10);
+
+    const employee = await Employee.create({
+      name,
+      email,
+      password: hashed,
+      phone,
+      joiningDate,
+      department,
+      companyCode,
+      status: "Active",
+    });
+
+    res.status(201).json({
+      message: "Employee created successfully",
+      employee,
+    });
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
 }
 
 export async function getEmployees(req, res) {
-  const employees =
-    req.user.role === ROLES.SUPERADMIN
-      ? await Employee.find()
-      : await Employee.find({ companyCode: req.user.companyCode });
-
-  res.json(employees);
+  try {
+    const employees = await Employee.find();
+    res.json(employees);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
 }
 
 export async function getEmployeeById(req, res) {
-  const employee = await Employee.findById(req.param.id);
+  try {
+    const empId = req.params.id;
 
-  if (!employee) {
-    return res.status(404).json({ msg: "Employee not found" });
+    if (!empId)
+      return res.status(400).json({ message: "Employee ID is required" });
+
+    if (req.user.role === ROLES.EMPLOYEE && req.user._id !== empId) {
+      return res.status(403).json({ message: "Access denied" });
+    }
+
+    const employee = await Employee.findById(empId);
+    if (!employee)
+      return res.status(404).json({ message: "Employee not found" });
+
+    res.json(employee);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
   }
-  res.json(employee);
 }
 
 export async function UpdateEmployeeById(req, res) {
   try {
-    const emp = await Employee.findByIdAndUpdate(req.paeams.id, req.body, {
+    const empId = req.params.employeeId;
+
+    if (!empId)
+      return res.status(400).json({ message: "Employee ID is required" });
+
+    const emp = await Employee.findByIdAndUpdate(empId, req.body, {
       new: true,
     });
+
     if (!emp) return res.status(404).json({ message: "Employee not found" });
 
-    res.json({ msg: "Employee Updated successfully", emp });
+    res.json({ message: "Employee updated successfully", emp });
   } catch (err) {
     res.status(400).json({ message: err.message });
   }
@@ -39,10 +92,16 @@ export async function UpdateEmployeeById(req, res) {
 
 export async function deleteEmployeeById(req, res) {
   try {
-    const emp = await Employee.findByIdAndDelete(req.param.id);
-    if (!emp) return res.status(404).json({ msg: "Employee not found" });
+    const empId = req.params.employeeId;
 
-    res.json({ msg: "Employee Deleted successfully", emp });
+    if (!empId)
+      return res.status(400).json({ message: "Employee ID is required" });
+
+    const emp = await Employee.findByIdAndDelete(empId);
+
+    if (!emp) return res.status(404).json({ message: "Employee not found" });
+
+    res.json({ message: "Employee deleted successfully", emp });
   } catch (err) {
     res.status(400).json({ message: err.message });
   }

@@ -1,16 +1,25 @@
 import { Router } from "express";
-import { generateSalary, getSalary } from "../controllers/salary.controller.js";
-
-import auth from "../middlewares/auth.middleware.js"; // <-- REQUIRED
-
+import {
+  generateSalary,
+  getSalary,
+  updateSalary,
+} from "../controllers/salary.controller.js";
 import { ROLES } from "../config/constant.js";
+import auth from "../middlewares/auth.middleware.js";
 
 const router = Router();
 
-// create salary (HR / SUPERADMIN)
-router.post("/", auth([ROLES.HR, ROLES.SUPERADMIN]), generateSalary);
+router.post(
+  "/generateSalary",
+  auth([ROLES.SUPERADMIN, ROLES.HR]),
+  generateSalary
+);
+router.get("/getSalary/:id/employee", auth(), getSalary);
 
-// get salary of one employee
-router.get("/:id", auth(), getSalary);
+router.put(
+  "/salary/update/:id",
+  auth([ROLES.SUPERADMIN, ROLES.HR]),
+  updateSalary
+);
 
 export default router;

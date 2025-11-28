@@ -5,7 +5,7 @@ import { ROLES, SALARY_STATUS } from "../config/constant.js";
 
 export async function generateSalary(req, res) {
   try {
-    const { employeeId, month, year, basicSalary, hra, da, bonus } = req.body;
+    const { employeeId, month, year, earnings, deductions } = req.body;
 
     const employee = await Employee.findById(employeeId);
 
@@ -21,6 +21,7 @@ export async function generateSalary(req, res) {
         $lte: new Date(year, month, 0),
       },
     });
+    //per day salry
     const dayInMonth = new Date(year, month, 0).getDate();
     const perDaySalary = basicSalary / dayInMonth;
 
@@ -28,13 +29,9 @@ export async function generateSalary(req, res) {
       employeeId,
       month,
       year,
-      basicSalary,
-      hra,
-      da,
-      bonus,
 
       deduction: {
-        LWP: LWPdeduction,
+        LWP: deductions,
       },
       salary,
       status: SALARY_STATUS.GENERATED,
@@ -54,13 +51,20 @@ export async function generateSalary(req, res) {
 
 export async function getSalary(req, res) {
   try {
+    const requestedId = req.params.id; // salary for which employee?
+
     let filter = {};
 
-    // EMPLOYEE → Only own salary
-    if (req.user.role !== ROLES.HR && req.user.role !== ROLES.SUPERADMIN) {
+    if (req.user.role === ROLES.EMPLOYEE) {
+      // employee can only view their own salary
+      if (requestedId !== req.user.id) {
+        return res.status(403).json({ msg: "Access denied" });
+      }
       filter.employeeId = req.user.id;
+    } else {
+      // HR / SUPERADMIN can view any employee salary
+      if (requestedId) filter.employeeId = requestedId;
     }
-
     const salaries = await Salary.find(filter).populate(
       "employeeId",
       "name email"
@@ -72,5 +76,26 @@ export async function getSalary(req, res) {
       msg: "Can't get Salary",
       error: err.message,
     });
+  }
+}
+
+//salary update by HR/Superadmin
+
+export async function updateSalary(req, res) {
+  try {
+    if (![ROLES.HR, ROLES.SUPERADMIN].includes(req.user.role)) {
+      return res.status(403).json({ msg: "Access denied" });
+    }
+    const id = req.params.id;
+    const updates = req.body;
+
+    const salary = await salary.findByIdandUpdate(id, updates, { new: true });
+
+    if (!salary) {
+      return res.status(404).json({ msg: "salary record not found" });
+    }
+    res.json({ msg: "Salary updated successfully", salary });
+  } catch (err) {
+    res.status(500).json({ msg: "Server error", error: err.message });
   }
 }

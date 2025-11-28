@@ -1,20 +1,20 @@
 import { Schema, model } from "mongoose";
-import { number } from "zod";
-
 const EmployeeSchema = new Schema({
   name: String,
   email: String,
+  password: String,
   phone: String,
   companyCode: String,
   joiningDate: Date,
+
   allowedLeaves: {
-    type: number,
+    type: Number,
     default: 15,
   },
 
   usedLeaves: {
-    type: number,
-    deflault: 0,
+    type: Number,
+    default: 0,
   },
 
   department: String,
