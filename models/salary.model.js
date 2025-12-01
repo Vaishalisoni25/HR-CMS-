@@ -1,5 +1,5 @@
-import { SALARY_STATUS } from "../config/constant.js";
 import mongoose from "mongoose";
+import { SALARY_STATUS } from "../config/constant.js";
 const { Schema, model } = mongoose;
 
 const salarySchema = new Schema({
@@ -20,9 +20,9 @@ const salarySchema = new Schema({
   },
 
   deductions: {
-    tds: { type: Number, default: 0 },
-
+    TDS: { type: Number, default: 0 },
     PF: { type: Number, default: 0 },
+    lwpDeduction: { type: Number, default: 0 },
   },
 
   status: {

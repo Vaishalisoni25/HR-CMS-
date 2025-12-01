@@ -4,7 +4,7 @@ import {
   deleteEmployeeById,
   getEmployeeById,
   getEmployees,
-  UpdateEmployeeById,
+  updateEmployeeById,
 } from "../controllers/employee.controller.js";
 import auth from "../middlewares/auth.middleware.js";
 import validate from "../middlewares/validate.middleware.js";
@@ -24,7 +24,7 @@ router.get("/", auth([ROLES.SUPERADMIN, ROLES.HR]), getEmployees);
 
 router.get("/:id", auth(), getEmployeeById);
 
-router.put(":/id", auth([ROLES.HR, ROLES.SUPERADMIN]), UpdateEmployeeById);
+router.put(":/id", auth([ROLES.HR, ROLES.SUPERADMIN]), updateEmployeeById);
 
 router.delete("/id", auth([ROLES.HR, ROLES.SUPERADMIN]), deleteEmployeeById);
 
