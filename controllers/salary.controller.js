@@ -4,11 +4,16 @@ import Attendance from "../models/attendance.model.js";
 import { SALARY_STATUS } from "../config/constant.js";
 import mongoose from "mongoose";
 import { ROLES } from "../config/constant.js";
+import { sendEmail } from "../services/email.service.js";
+import { formatFullDate } from "../utils/dateGenerate.js";
 
 export async function generateSalary(req, res) {
   try {
+    const employeeId = req.params.id;
+    if (!employeeId) {
+      return res.status(400).json({ message: "Employee id is required" });
+    }
     const {
-      employeeId,
       month,
       year,
       overtime = 0,
@@ -16,10 +21,8 @@ export async function generateSalary(req, res) {
       otherAdjustment = 0,
     } = req.body;
 
-    if (!employeeId || !month || !year) {
-      return res
-        .status(400)
-        .json({ message: "employeeId, month and year are required" });
+    if (!month || !year) {
+      return res.status(400).json({ message: "month and year are required" });
     }
     const employee = await Employee.findById(employeeId);
 
@@ -33,7 +36,7 @@ export async function generateSalary(req, res) {
 
     // Get Attendance of selected month
     const attendanceRecords = await Attendance.find({
-      employeeId: mongoose.Types.ObjectId(employeeId),
+      employeeId: new mongoose.Types.ObjectId(employeeId),
       date: {
         $gte: new Date(year, month - 1, 1),
         $lte: new Date(year, month, 0, 23, 59, 59, 999),
@@ -62,8 +65,8 @@ export async function generateSalary(req, res) {
     };
 
     const deductions = {
-      TDS: 100,
-      PF: 100,
+      TDS: 0,
+      PF: basicSalary * 0.12,
       lwpDeduction,
     };
 
@@ -80,7 +83,7 @@ export async function generateSalary(req, res) {
 
     const netSalary = totalEarning - totalDeduction;
 
-    const salary = await salary.create({
+    const salary = await Salary.create({
       employeeId,
       month,
       year,
@@ -88,12 +91,54 @@ export async function generateSalary(req, res) {
       deductions,
       netSalary,
     });
+
+    const formattedDate = formatFullDate(new Date());
+
+    const subject = `Salary Slip for ${month}-${year}`;
+    const html = `
+  <div style="font-family: Arial, sans-serif; padding: 20px;">
+    <h2 style="color:#2d89ef;">Salary Slip - ${formattedDate}</h2>
+
+    <p>Dear <b>${employee.name}</b>,</p>
+
+    <p>Your salary for the month of <b>${formattedDate}</b> has been successfully processed.</p>
+
+    <h3 style="color:#444;">Earnings</h3>
+    <ul>
+      <li><b>Basic Salary:</b> ₹${earnings.basicSalary.toFixed(2)}</li>
+      <li><b>Bonus:</b> ₹${earnings.bonus.toFixed(2)}</li>
+      <li><b>Overtime:</b> ₹${earnings.overtime.toFixed(2)}</li>
+      <li><b>Paid Leave Encashment:</b> ₹${earnings.leaveEncashment.toFixed(
+        2
+      )}</li>
+      <li><b>Other Adjustments:</b> ₹${earnings.otherAdjustment.toFixed(2)}</li>
+    </ul>
+
+    <h3 style="color:#444;">Deductions</h3>
+    <ul>
+      <li><b>PF (12%):</b> ₹${deductions.PF.toFixed(2)}</li>
+      <li><b>LWP Deduction:</b> ₹${deductions.lwpDeduction.toFixed(2)}</li>
+      <li><b>TDS:</b> ₹${deductions.TDS.toFixed(2)}</li>
+    </ul>
+
+    <h2 style="color:green;">Net Salary: ₹${netSalary.toFixed(2)}</h2>
+
+    <br>
+    <p>Best Regards,<br><b>HR Team</b></p>
+  </div>
+`;
+    await sendEmail({
+      to: employee.email,
+      subject: "Your Salary is generated",
+      html: html,
+    });
     return res.status(201).json({
       message: "Salary generated successfully",
-      salary,
+      data: salary,
     });
   } catch (err) {
     console.error(err);
+    console.log(err);
     return res.status(500).json({ message: "Server Error", err });
   }
 }
@@ -101,25 +146,40 @@ export async function generateSalary(req, res) {
 
 export async function getSalary(req, res) {
   try {
-    const user = req.user;
-    let filter = {};
+    const employeeId = req.params.id;
+    const { month, year } = req.body;
 
-    if (![ROLES.HR, ROLES.SUPERADMIN].includes(user.role)) {
-      filter.employeeId = user.id;
+    if (!employeeId) {
+      return res.status(400).json({ message: "Employee Id is required" });
     }
-    if (req.query.employeeId) {
-      filter.employeeId = req.query.employeeId;
+    if (!month || !year) {
+      return res.status(400).json({ message: "Month and Year are required" });
     }
-    if (req.query.employeeId) {
-      filter.employeeId = req.query.employeeId;
-    }
-    const { month, year } = req.query;
-    if (month) filter.month = Number(month);
-    if (year) filter.year = Number(year);
 
-    const salaries = await Salary.find(filter);
-    return res.json(salaries);
+    const m = Number(month);
+    const y = Number(year);
+
+    if (isNaN(m) || isNaN(y) || m < 1 || m > 12) {
+      return res.status(400).json({ message: "Invalid month or year" });
+    }
+
+    // ----- Find salary -----
+    const salary = await Salary.findOne({
+      employeeId,
+      month: m,
+      year: y,
+    });
+
+    if (!salary) {
+      return res.status(404).json({ message: "Salary not found" });
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: salary,
+    });
   } catch (err) {
-    return res.status(500).json({ msg: "Server Error", error: err.message });
+    console.error(err);
+    return res.status(500).json({ msg: "Server Error", err });
   }
 }

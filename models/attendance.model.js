@@ -15,7 +15,7 @@ const AttendanceSchema = new Schema(
 
     status: {
       type: String,
-      enum: ["Absent", "Attended", "Leave", "LWP", "WFH", "Half-Day"],
+      enum: ["Attended", "Leave", "LWP", "WFH", "Half-Day"],
 
       required: true,
     },
