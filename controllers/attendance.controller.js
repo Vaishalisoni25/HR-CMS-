@@ -1,30 +1,35 @@
 import Attendance from "../models/attendance.model.js";
 import Employee from "../models/employee.model.js";
+import { sendEmail } from "../services/email.service.js";
 import { LEAVE_TYPES, ROLES } from "../config/constant.js";
+import { parseDate } from "../utils/generateCode.js";
 
 export async function markAttendance(req, res) {
   try {
     if (![ROLES.HR, ROLES.SUPERADMIN].includes(req.user.role)) {
       return res.status(403).json({ msg: "Only HR can mark attendance" });
     }
-
+    const employeeId = req.params.id;
     const { date, status, leaveType } = req.body;
+    console.log(req.body);
 
-    const employeeId = req.user.employeeId;
-
-    if (!employeeId) {
+    if (!employeeId)
       return res.status(400).json({ msg: "Employee ID is required" });
+    if (!date) return res.status(400).json({ msg: "Date is required" });
+    if (!status) return res.status(400).json({ msg: "Status is required" });
+    const statusClean = status.trim();
+
+    if (status === "Attended") {
+      if (leaveType) {
+        return res.status(400).json({
+          msg: "Leave type is not allowed when status is present",
+        });
+      }
     }
 
-    if (!date) {
-      return res.status(400).json({ msg: "Date is required" });
-    }
-    if (!status) {
-      return res.status(400).json({ msg: "status is required" });
-    }
-
-    const d = new Date(date);
+    const d = new parseDate(date);
     d.setHours(0, 0, 0, 0);
+    console.log(employeeId);
 
     const employee = await Employee.findById(employeeId);
     if (!employee) return res.status(404).json({ msg: "Employee not found" });
@@ -33,7 +38,7 @@ export async function markAttendance(req, res) {
       employeeId,
       date: d,
       status,
-      leaveType: LEAVE_TYPES,
+      leaveType: status === "Attended" ? null : leaveType || null,
     };
 
     if (status === "Leave") {
@@ -43,11 +48,28 @@ export async function markAttendance(req, res) {
 
         updateData.isPaidLeave = true;
         updateData.status = "Leave";
+
+        //send email - approved leave
+        const htmlTemp = `
+   <p>Dear <b>${employee.name}</b>,</p>
+
+          <p>Your leave request has been <b>APPROVED</b>.</p>
+          <p>Date: <b>${d.toDateString()}</b></p>
+          <br/>
+          <p>Regards,<br>HR Team</p>
+
+     `;
+        await sendEmail({
+          to: employee.email,
+          subject: "Your Leave is Approved",
+          html: htmlTemp,
+        });
       } else {
         updateData.isPaidLeave = false;
         updateData.status = "LWP";
       }
     }
+
     const attendance = await Attendance.findOneAndUpdate(
       { employeeId, date: d },
       updateData,
@@ -69,14 +91,30 @@ export async function markAttendance(req, res) {
 
 export async function getAttendance(req, res) {
   try {
-    const { employeeId, month, year } = req.query;
+    const { month, year } = req.body;
+    const employeeId = req.params.id;
+
+    console.log(req.body);
+    if (!employeeId) {
+      return res.status(400).json({ message: "Employee Id is required " });
+    }
+    if (!month || !year) {
+      return res.status(400).json({ message: "Month and Year are required" });
+    }
+
+    const m = Number(month);
+    const y = Number(year);
+
+    if (isNaN(m) || isNaN(y) || m < 1 || m > 12) {
+      return res.status(400).json({ message: "Invalid month or year" });
+    }
+
+    const startDate = new Date(y, m - 1, 1);
+    const endDate = new Date(y, m, 0, 23, 59, 59, 999);
 
     const attendanceRecords = await Attendance.find({
       employeeId,
-      date: {
-        $gte: new Date(year, month - 1, 1),
-        $lte: new Date(year, month, 0, 23, 59, 59, 999),
-      },
+      date: { $gte: startDate, $lte: endDate },
     });
 
     let leaveCount = 0;
@@ -98,6 +136,6 @@ export async function getAttendance(req, res) {
     });
   } catch (err) {
     console.log(err);
-    return res.status(500).json({ msg: "Server Error" });
+    return res.status(500).json({ msg: "Server Error", err });
   }
 }

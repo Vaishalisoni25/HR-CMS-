@@ -24,8 +24,8 @@ router.get("/", auth([ROLES.SUPERADMIN, ROLES.HR]), getEmployees);
 
 router.get("/:id", auth(), getEmployeeById);
 
-router.put(":/id", auth([ROLES.HR, ROLES.SUPERADMIN]), updateEmployeeById);
+router.put("/:id", auth([ROLES.HR, ROLES.SUPERADMIN]), updateEmployeeById);
 
-router.delete("/id", auth([ROLES.HR, ROLES.SUPERADMIN]), deleteEmployeeById);
+router.delete("/:id", auth([ROLES.HR, ROLES.SUPERADMIN]), deleteEmployeeById);
 
 export default router;
