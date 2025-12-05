@@ -30,9 +30,7 @@ export async function generateSalary(req, res) {
       month,
       year,
 
-      deduction: {
-        LWP: deductions,
-      },
+      deduction: {},
       salary,
       status: SALARY_STATUS.GENERATED,
     });

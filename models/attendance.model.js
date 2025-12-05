@@ -22,7 +22,7 @@ const AttendanceSchema = new Schema(
     //Store which type leave was applied
     leaveType: {
       type: String,
-      enum: ["Sick", "Privilege", "WFH", "LWP"],
+      enum: ["Sick", "Festive-Leave", "LWP"],
       default: null,
     },
 

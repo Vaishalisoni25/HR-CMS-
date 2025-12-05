@@ -13,6 +13,6 @@ router.post(
   auth([ROLES.SUPERADMIN, ROLES.HR]),
   markAttendance
 );
-router.get("/Attendance", auth(), getAttendance);
+router.get("/", auth(), getAttendance);
 
 export default router;
