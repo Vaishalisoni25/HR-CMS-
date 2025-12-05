@@ -2,7 +2,7 @@ import Attendance from "../models/attendance.model.js";
 import Employee from "../models/employee.model.js";
 import { sendEmail } from "../services/email.service.js";
 import { LEAVE_TYPES, ROLES } from "../config/constant.js";
-import { parseDate } from "../utils/generateCode.js";
+import { parseDate } from "../utils/dateGenerate.js";
 
 export async function markAttendance(req, res) {
   try {
@@ -17,7 +17,6 @@ export async function markAttendance(req, res) {
       return res.status(400).json({ msg: "Employee ID is required" });
     if (!date) return res.status(400).json({ msg: "Date is required" });
     if (!status) return res.status(400).json({ msg: "Status is required" });
-    const statusClean = status.trim();
 
     if (status === "Attended") {
       if (leaveType) {
@@ -50,13 +49,16 @@ export async function markAttendance(req, res) {
         updateData.status = "Leave";
 
         //send email - approved leave
+        const subject = `Leave Approved`;
         const htmlTemp = `
-   <p>Dear <b>${employee.name}</b>,</p>
-
+  
+ <div style="font-family: Arial, sans-serif; padding: 20px;">
+ 
+    <p>Dear <b>${employee.name}</b>,</p>
           <p>Your leave request has been <b>APPROVED</b>.</p>
           <p>Date: <b>${d.toDateString()}</b></p>
           <br/>
-          <p>Regards,<br>HR Team</p>
+          <p>Best Regards,<br>HR Team</p>
 
      `;
         await sendEmail({

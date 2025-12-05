@@ -21,9 +21,9 @@ export async function register(req, res, next) {
   try {
     console.log("running");
 
-    // if (req.user.role !== "hr" && req.user.role !== "superadmin") {
-    //   return res.status(403).json({ message: "Access denied" });
-    // }
+    if (req.user.role !== "hr" && req.user.role !== "superadmin") {
+      return res.status(403).json({ message: "Access denied" });
+    }
     const { name, email, password, role } = req.body;
 
     const existing = await User.findOne({ email });

@@ -5,7 +5,7 @@ import { SALARY_STATUS } from "../config/constant.js";
 import mongoose from "mongoose";
 import { ROLES } from "../config/constant.js";
 import { sendEmail } from "../services/email.service.js";
-import { formatFullDate } from "../utils/generateCode.js";
+import { formatFullDate } from "../utils/dateGenerate.js";
 
 export async function generateSalary(req, res) {
   try {
