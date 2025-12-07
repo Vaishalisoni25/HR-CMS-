@@ -1,0 +1,1 @@
+ import Settings from "../models/settings.model"
