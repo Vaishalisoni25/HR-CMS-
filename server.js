@@ -26,7 +26,7 @@ app.use("/api/settings", settingsRoute);
 // app.use(errorHandler);
 
 // Global error handler
-app.use((err, req, res, next) => {
+app.use((err, req, res) => {
   console.error(err);
   res.status(500).json({ message: err.message || "Server error" });
 });

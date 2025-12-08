@@ -4,16 +4,16 @@ import { portalSettingsSchema } from "../validations/settings.validation.js";
 import settingsModel from "../models/settings.model.js";
 import { success } from "zod";
 
-export async function UpsertSettingPortal(req, res) {
+export async function createSettingPortal(req, res) {
   try {
     const parsed = portalSettingsSchema.safeParse(req.body);
     if (!parsed.success)
       return res.status(400).json({ errors: parsed.error.errors });
     const payload = parsed.data;
 
-    const FIXED_Id = process.env.SETTINGS_ID;
+    const fixedId = process.env.SETTINGS_ID;
     const settings = await Settings.findOneAndUpdate(
-      { _id: FIXED_Id },
+      { _id: fixedId },
       { $set: payload },
       { new: true, upsert: true }
     );
@@ -28,7 +28,7 @@ export async function UpsertSettingPortal(req, res) {
   }
 }
 
-export async function getSettings(req, res) {
+export async function getSettingPortal(req, res) {
   try {
     const fixId = process.env.SETTINGS_ID;
     let settings = await Settings.findById(fixId);
