@@ -1,4 +1,5 @@
 import { Schema, model } from "mongoose";
+
 const EmployeeSchema = new Schema({
   name: String,
   email: String,
@@ -7,6 +8,21 @@ const EmployeeSchema = new Schema({
   companyCode: String,
   joiningDate: Date,
 
+  employmentType: {
+    type: String,
+    enum: ["FULL_TIME", "PART_TIME", "INTERN"],
+    required: true,
+  },
+
+  position: {
+    type: String,
+    required: true,
+    trim: true,
+  },
+  basicSalary: {
+    type: Number,
+    default: 0,
+  },
   allowedLeaves: {
     type: Number,
     default: 15,
@@ -17,7 +33,6 @@ const EmployeeSchema = new Schema({
     default: 0,
   },
 
-  department: String,
   status: { type: String, enum: ["Active", "Inactive"], default: "Active" },
 });
 
