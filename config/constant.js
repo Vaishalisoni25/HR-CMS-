@@ -34,6 +34,8 @@ export const SALARY_STATUS = {
   HOLD: "hold",
 };
 
+export const SETTING_COMPONENT = {};
+
 /*
 Send Auto Email
 - create employee (login details - email, pass)

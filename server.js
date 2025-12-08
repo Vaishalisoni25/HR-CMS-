@@ -7,7 +7,7 @@ import authRoutes from "./routes/auth.route.js";
 import attendanceRoute from "./routes/attendance.route.js";
 import employeeRoute from "./routes/employee.route.js";
 import salaryRoute from "./routes/salary.route.js";
-import errorHandler from "./middlewares/errorHandler.js";
+import settingsRoute from "./routes/settings.route.js";
 
 dotenv.config();
 const app = express();
@@ -21,6 +21,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/employees", employeeRoute);
 app.use("/api/attendance", attendanceRoute);
 app.use("/api/salary", salaryRoute);
+app.use("/api/settings", settingsRoute);
 
 // app.use(errorHandler);
 

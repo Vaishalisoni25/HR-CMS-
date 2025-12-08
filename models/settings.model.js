@@ -1,54 +1,59 @@
 import { Schema, model } from "mongoose";
-const settingsSchema = new Schema ({
 
- portalTitle:{
-    type:String,
-    required:true,
-    trim:true,
- },
-
- brandingLogo:{
- type:String,
- default:"",
- },
-
- themeColors:{
-    primary:{
-       type:String,
-      default: "#000000",
+const settingsSchema = new Schema(
+  {
+    _id: {
+      type: String,
     },
-    secondary:{
-       type:String,
-       default: "#FFFFFF"
-    }
-},
+    portalTitle: {
+      type: String,
+      required: true,
+      trim: true,
+    },
 
-defaultTimeZone:{
-    type:String,
-    default:"Asia/Kolkata"
-},
+    brandingLogo: {
+      type: String,
+      default: "",
+    },
 
-workingDays:{
-    type:[String],
-    default:["Mon","Tue","Wed","Thu","Fri"],
-    enum:["Sun","Mon","Tue","Wed","Thu","Fri","Sat"],
-},
+    themeColors: {
+      primary: {
+        type: String,
+        default: "#000000",
+      },
+      secondary: {
+        type: String,
+        default: "#FFFFFF",
+      },
+    },
 
-leaveYearStart:{
-    type:String,
-    enum:["JAN-DEC","APR-MAR","CUSTOM"],
-    default:"JAN-DEC",
-},
+    defaultTimeZone: {
+      type: String,
+      default: "Asia/Kolkata",
+    },
 
-enablePublicHoliday:{
-    type:Boolean,
-    default:false
-},
+    workingDays: {
+      type: [String],
+      default: ["Mon", "Tue", "Wed", "Thu", "Fri"],
+      enum: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+    },
 
-enableLateMarkRules:{
-    type:Boolean,
-    default:false
-}
-},
-{timestamps:true});
-module.exports = mongoose.model("portalSettings",settingsSchema);
+    leaveYearStart: {
+      type: String,
+      enum: ["JAN-DEC", "APR-MAR", "CUSTOM"],
+      default: "JAN-DEC",
+    },
+
+    enablePublicHoliday: {
+      type: Boolean,
+      default: false,
+    },
+
+    enableLateMarkRules: {
+      type: Boolean,
+      default: false,
+    },
+  },
+  { timestamps: true }
+);
+export default model("Settings", settingsSchema);

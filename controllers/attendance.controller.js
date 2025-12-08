@@ -28,7 +28,7 @@ export async function markAttendance(req, res) {
 
     // const d = new parseDate(date);
     // d.setHours(0, 0, 0, 0);
-    const formattedDate =formatFullDate(new Date());
+    const formattedDate = formatFullDate(new Date());
     console.log(employeeId);
 
     const employee = await Employee.findById(employeeId);
@@ -36,7 +36,7 @@ export async function markAttendance(req, res) {
 
     let updateData = {
       employeeId,
-      date: d,
+      date,
       status,
       leaveType: status === "Attended" ? null : leaveType || null,
     };
@@ -74,7 +74,7 @@ export async function markAttendance(req, res) {
     }
 
     const attendance = await Attendance.findOneAndUpdate(
-      { employeeId, date: d },
+      { employeeId, date },
       updateData,
       {
         upsert: true,
