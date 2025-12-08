@@ -1,9 +1,8 @@
 import Attendance from "../models/attendance.model.js";
 import Employee from "../models/employee.model.js";
 import { sendEmail } from "../services/email.service.js";
-import { LEAVE_TYPES, ROLES } from "../config/constant.js";
-import { parseDate } from "../utils/dateGenerate.js";
-
+import { ROLES } from "../config/constant.js";
+import { formatFullDate } from "../utils/dateGenerate.js";
 export async function markAttendance(req, res) {
   try {
     if (![ROLES.HR, ROLES.SUPERADMIN].includes(req.user.role)) {
@@ -26,8 +25,8 @@ export async function markAttendance(req, res) {
       }
     }
 
-    const d = new parseDate(date);
-    d.setHours(0, 0, 0, 0);
+    const formattedDate = formatFullDate(new Date());
+
     console.log(employeeId);
 
     const employee = await Employee.findById(employeeId);
@@ -56,7 +55,7 @@ export async function markAttendance(req, res) {
  
     <p>Dear <b>${employee.name}</b>,</p>
           <p>Your leave request has been <b>APPROVED</b>.</p>
-          <p>Date: <b>${d.toDateString()}</b></p>
+          <p>Date: <b>${formattedDate}</b></p>
           <br/>
           <p>Best Regards,<br>HR Team</p>
 
