@@ -6,17 +6,14 @@ const { verify } = jwt;
 
 export default function authMiddleware(allowedRoles = []) {
   return function (req, res, next) {
-    const authHeader = req.headers?.authorization;
-    if (!authHeader)
-      return res.status(401).json({ msg: "no token authorization denied" });
-
-    const token = authHeader.split(" ")[1];
+    const token = req.headers["authorization"];
     if (!token) return res.status(401).json({ msg: "Token missing" });
 
     try {
       const decoded = verify(token, process.env.JWT_SECRET);
       req.user = decoded;
     } catch (err) {
+      console.log(err);
       return res.status(401).json({ msg: "not authenticated" });
     }
 
