@@ -5,7 +5,7 @@ import { SALARY_STATUS } from "../config/constant.js";
 import mongoose from "mongoose";
 import { ROLES } from "../config/constant.js";
 import { sendEmail } from "../services/email.service.js";
-import { formatFullDate } from "../utils/dateGenerate.js";
+import { formatFullDate, validationMonthYear } from "../utils/dateGenerate.js";
 
 export async function generateSalary(req, res) {
   try {
@@ -21,17 +21,22 @@ export async function generateSalary(req, res) {
       otherAdjustment = 0,
     } = req.body;
 
-    if (!month || !year) {
-      return res.status(400).json({ message: "month and year are required" });
-    }
     const employee = await Employee.findById(employeeId);
 
     if (!employee) return res.status(404).json({ msg: "Employee not found" });
 
+    const result = validationMonthYear(month, year);
+
+    if (result.error) {
+      return res.status(400).json({ message: result.error });
+    }
+
+    const { m, y } = result;
+
     const basicSalary = employee.basicSalary;
 
     //per day salry
-    const dayInMonth = new Date(year, month, 0).getDate();
+    const dayInMonth = new Date(y, m, 0).getDate();
     const perDaySalary = basicSalary / dayInMonth;
 
     // Get Attendance of selected month
@@ -152,16 +157,13 @@ export async function getSalary(req, res) {
     if (!employeeId) {
       return res.status(400).json({ message: "Employee Id is required" });
     }
-    if (!month || !year) {
-      return res.status(400).json({ message: "Month and Year are required" });
+    const result = validationMonthYear(month, year);
+
+    if (result.error) {
+      return res.status(400).json({ message: result.error });
     }
 
-    const m = Number(month);
-    const y = Number(year);
-
-    if (isNaN(m) || isNaN(y) || m < 1 || m > 12) {
-      return res.status(400).json({ message: "Invalid month or year" });
-    }
+    const { m, y } = result;
 
     // ----- Find salary -----
     const salary = await Salary.findOne({

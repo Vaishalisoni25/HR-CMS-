@@ -2,7 +2,11 @@ import Attendance from "../models/attendance.model.js";
 import Employee from "../models/employee.model.js";
 import { sendEmail } from "../services/email.service.js";
 import { LEAVE_TYPES, ROLES } from "../config/constant.js";
-import { formatFullDate, parseDate } from "../utils/dateGenerate.js";
+import {
+  formatFullDate,
+  parseDate,
+  validationMonthYear,
+} from "../utils/dateGenerate.js";
 
 export async function markAttendance(req, res) {
   try {
@@ -26,8 +30,6 @@ export async function markAttendance(req, res) {
       }
     }
 
-    // const d = new parseDate(date);
-    // d.setHours(0, 0, 0, 0);
     const formattedDate = formatFullDate(new Date());
     console.log(employeeId);
 
@@ -101,19 +103,13 @@ export async function getAttendance(req, res) {
     if (!employeeId) {
       return res.status(400).json({ message: "Employee Id is required " });
     }
-    if (!month || !year) {
-      return res.status(400).json({ message: "Month and Year are required" });
+
+    const result = validationMonthYear(month, year);
+
+    if (result.error) {
+      return res.status(400).json({ message: result.error });
     }
-
-    const m = Number(month);
-    const y = Number(year);
-
-    if (isNaN(m) || isNaN(y) || m < 1 || m > 12) {
-      return res.status(400).json({ message: "Invalid month or year" });
-    }
-
-    const startDate = new Date(y, m - 1, 1);
-    const endDate = new Date(y, m, 0, 23, 59, 59, 999);
+    const { m, y, startDate, endDate } = result;
 
     const attendanceRecords = await Attendance.find({
       employeeId,
