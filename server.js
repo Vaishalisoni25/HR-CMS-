@@ -3,18 +3,20 @@ import express, { json } from "express";
 import dotenv from "dotenv";
 import connectDB from "./config/connectDB.js";
 import path from "path";
+import { fileURLToPath } from "url";
 
 import authRoutes from "./routes/auth.route.js";
 import attendanceRoute from "./routes/attendance.route.js";
 import employeeRoute from "./routes/employee.route.js";
 import salaryRoute from "./routes/salary.route.js";
 import settingsRoute from "./routes/settings.route.js";
-import { success } from "zod";
 
 dotenv.config();
 const app = express();
 
 connectDB();
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 app.use(express.json());
 
@@ -24,6 +26,16 @@ app.use("/api/employees", employeeRoute);
 app.use("/api/attendance", attendanceRoute);
 app.use("/api/salary", salaryRoute);
 app.use("/api/settings", settingsRoute);
+
+if (process.env.NODE_ENV === "production") {
+  const clientPath = path.join(__dirname, "client", "dist");
+
+  app.use(express.static(clientPath));
+
+  app.get("*", (_req, res) => {
+    res.sendFile(path.join(clientPath, "index.html"));
+  });
+}
 
 // Global error handler
 app.use((err, _req, res, _next) => {
@@ -42,13 +54,6 @@ app.use((err, _req, res, _next) => {
 });
 
 const PORT = process.env.PORT;
-process.on("uncaughtException", (err) => {
-  console.error("❌ Uncaught Exception:", err);
-});
-process.on("unhandledRejection", (err) => {
-  console.error("❌ Unhandled Rejection:", err);
-});
-
 app.listen(PORT, () =>
   console.log(`Server running  at  http://localhost:${PORT}`)
 );
