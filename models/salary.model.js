@@ -12,7 +12,7 @@ const salarySchema = new Schema({
   year: { type: Number, required: true },
 
   earnings: {
-    basicSalary: { type: Number, required: true },
+    basic_salary: { type: Number, required: true },
     overtime: { type: Number, default: 0 },
     bonus: { type: Number, default: 0 },
     leaveEncashment: { type: Number, default: 0 },
@@ -20,9 +20,9 @@ const salarySchema = new Schema({
   },
 
   deductions: {
-    TDS: { type: Number, default: 0 },
-    PF: { type: Number, default: 0 },
-    lwpDeduction: { type: Number, default: 0 },
+    tds: { type: Number, default: 0 },
+    pf: { type: Number, default: 0 },
+    "lwp-deduction": { type: Number, default: 0 },
   },
 
   status: {

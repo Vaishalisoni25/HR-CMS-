@@ -8,24 +8,25 @@ export const ATTENDANCE_STATUSES = {
   ATTENDED: "attended",
   ABSENT: "absent",
   LEAVE: "leave",
-  HALF_DAY: "halfDay",
-  LWP: "LWP",
+  HALF_DAY: "half_day",
+  LWP: "lwp",
   //TODAY_DATE: "Today-Date",
 };
 export const LEAVE_TYPES = {
   SICK: "sick",
   LEAVE: "leave",
-  HALFDAY: "halfDay",
+  HALFDAY: "half_day",
   PRIVILEGE: "privilege",
-  WFH: "WFH",
-  LWP: "LWP",
+  WFH: "wfh",
+  LWP: "lwp",
 };
 export const SALARY_COMPONENT = {
-  BASIC_SALARY: "basicSalary",
+  BASIC_SALARY: "basic_salary",
   BONUS: "bonus",
-  PF: "PF",
-  TDS: "TDS",
-  LWP_DEDUCTION: "LWP-Deduction",
+  PF: "pf",
+  TDS: "tds",
+  OVERTIME: "overtime",
+  LWP_DEDUCTION: "lwp-deduction",
 };
 
 export const SALARY_STATUS = {

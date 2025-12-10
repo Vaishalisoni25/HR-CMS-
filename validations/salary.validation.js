@@ -12,7 +12,7 @@ export const salaryGenerateSchema = z.object({
   year: z.number().min(2000),
 
   earnings: z.object({
-    basicSalary: z.number().min(0),
+    basic_salary: z.number().min(0),
     overtime: z.number().min(0).optional(),
     bonus: z.number().min(0).optional(),
     leaveEncashment: z.number().min(0).optional(),
@@ -21,8 +21,8 @@ export const salaryGenerateSchema = z.object({
 
   deductions: z.object({
     tds: z.number().min(0).optional(),
-    LWP: z.number().min(0).optional(),
-    PF: z.number().min(0).optional(),
+    lwp: z.number().min(0).optional(),
+    pf: z.number().min(0).optional(),
   }),
 
   status: z.enum(Object.values(SALARY_STATUS)).optional(),

@@ -1,9 +1,12 @@
-export default (schema) => (req, res, next) => {
+import { ZodError } from "zod";
+
+const validate = (schema) => (req, _res, next) => {
   try {
-    req.query = schema.parse(req.body);
+    schema.parse(req.body);
     next();
   } catch (err) {
-    console.log(err);
-    return res.status(400).json({ errors: err.errors });
+    next(err); // send to global error handler
   }
 };
+
+export default validate;

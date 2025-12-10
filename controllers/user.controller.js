@@ -13,7 +13,7 @@ const createToken = (user) => {
       role: user.role,
     },
     process.env.JWT_SECRET,
-    { expiresIn: "7d" }
+    { expiresIn: "9d" }
   );
 };
 
@@ -46,7 +46,7 @@ export async function register(req, res, next) {
   }
 }
 
-export async function login(req, res, next) {
+export async function login(req, res) {
   const { email, password } = req.body;
 
   const user = await User.findOne({ email });
@@ -59,7 +59,7 @@ export async function login(req, res, next) {
   res.json({ token: createToken(user) });
 }
 
-export async function getAllUsers(req, res) {
+export async function getAllUsers(_req, res) {
   try {
     const users = await User.find();
     return res.json(users);
@@ -111,7 +111,7 @@ export async function updateUserById(req, res) {
   }
 }
 
-export async function deleteUserById(req, res, next) {
+export async function deleteUserById(_req, res, next) {
   try {
     const user = await User.findByIdAndDelete(res.params.id);
     if (!user) {
