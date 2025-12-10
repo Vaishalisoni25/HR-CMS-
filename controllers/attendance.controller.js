@@ -107,7 +107,7 @@ export async function getAttendance(req, res, _next) {
     const attendanceRecords = await Attendance.find({
       employeeId,
       date: { $gte: startDate, $lte: endDate },
-    });
+    }).lean();
 
     let leaveCount = 0;
     let paidLeaveCount = 0;

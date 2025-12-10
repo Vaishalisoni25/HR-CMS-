@@ -65,8 +65,7 @@ export async function createEmployee(req, res, next) {
 
 export async function getEmployees(_req, res, next) {
   try {
-    console.log("running");
-    const employees = await Employee.find();
+    const employees = await Employee.find().lean();
     res.json({
       succcess: true,
       message: "Employees fetched successfully",
@@ -150,6 +149,6 @@ export async function deleteEmployeeById(req, res, next) {
       data: emp,
     });
   } catch (err) {
-    return res.status(400).json({ message: "Employee deletion denied" });
+    next(err);
   }
 }

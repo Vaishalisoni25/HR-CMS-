@@ -29,7 +29,7 @@ app.use("/api/settings", settingsRoute);
 app.use((err, _req, res, _next) => {
   console.error(err);
   if (err.name === "ZodError") {
-    returnres.status(400).json({
+    return res.status(400).json({
       success: false,
       message: "Validation failed",
       errors: err.errors,
@@ -42,12 +42,6 @@ app.use((err, _req, res, _next) => {
 });
 
 const PORT = process.env.PORT;
-process.on("uncaughtException", (err) => {
-  console.error("❌ Uncaught Exception:", err);
-});
-process.on("unhandledRejection", (err) => {
-  console.error("❌ Unhandled Rejection:", err);
-});
 
 app.listen(PORT, () =>
   console.log(`Server running  at  http://localhost:${PORT}`)

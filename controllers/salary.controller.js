@@ -153,7 +153,7 @@ export async function getSalary(req, res) {
       employeeId,
       month: m,
       year: y,
-    });
+    }).lean();
 
     if (!salary) {
       return res.status(404).json({ message: "Salary not found" });

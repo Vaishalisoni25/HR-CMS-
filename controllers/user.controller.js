@@ -61,7 +61,7 @@ export async function login(req, res) {
 
 export async function getAllUsers(_req, res) {
   try {
-    const users = await User.find();
+    const users = await User.find().lean();
     return res.json(users);
   } catch (error) {
     return res
@@ -94,7 +94,7 @@ export async function getUserById(req, res) {
 
 export async function updateUserById(req, res) {
   try {
-    const user = await User.findByIdAndUpdate(res.params.id, req.body, {
+    const user = await User.findByIdAndUpdate(req.params.id, req.body, {
       new: true,
     });
 
@@ -113,7 +113,7 @@ export async function updateUserById(req, res) {
 
 export async function deleteUserById(_req, res, next) {
   try {
-    const user = await User.findByIdAndDelete(res.params.id);
+    const user = await User.findByIdAndDelete(_req.params.id);
     if (!user) {
       return next(new customError("user not found", 404));
     }
