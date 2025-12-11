@@ -10,6 +10,7 @@ import attendanceRoute from "./routes/attendance.route.js";
 import employeeRoute from "./routes/employee.route.js";
 import salaryRoute from "./routes/salary.route.js";
 import settingsRoute from "./routes/settings.route.js";
+import reportRoute from "./routes/report.route.js";
 
 dotenv.config();
 const app = express();
@@ -26,6 +27,7 @@ app.use("/api/employees", employeeRoute);
 app.use("/api/attendance", attendanceRoute);
 app.use("/api/salary", salaryRoute);
 app.use("/api/settings", settingsRoute);
+app.use("/api/report", reportRoute);
 
 if (process.env.NODE_ENV === "production") {
   const clientPath = path.join(__dirname, "client", "dist");

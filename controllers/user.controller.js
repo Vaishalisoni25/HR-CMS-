@@ -19,8 +19,6 @@ const createToken = (user) => {
 
 export async function register(req, res, next) {
   try {
-    console.log("running");
-
     if (req.user.role !== "hr" && req.user.role !== "superadmin") {
       return res.status(403).json({ message: "Access denied" });
     }
@@ -61,7 +59,7 @@ export async function login(req, res) {
 
 export async function getAllUsers(_req, res) {
   try {
-    const users = await User.find();
+    const users = await User.find().lean();
     return res.json(users);
   } catch (error) {
     return res
