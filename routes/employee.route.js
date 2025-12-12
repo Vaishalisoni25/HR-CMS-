@@ -10,7 +10,6 @@ import auth from "../middlewares/auth.middleware.js";
 import validate from "../middlewares/validate.middleware.js";
 import { employeeSchema } from "../validations/employee.validation.js";
 import { ROLES } from "../config/constant.js";
-import { updateUserById } from "../controllers/user.controller.js";
 
 const router = Router();
 

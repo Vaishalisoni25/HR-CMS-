@@ -1,7 +1,7 @@
 import Employee from "../models/employee.model.js";
 import Attendance from "../models/attendance.model.js";
 import Salary from "../models/salary.model.js";
-import { validationMonthYear } from "../utils/validateMonthYear.js";
+import { validationMonthYear } from "../utils/date.js";
 
 export async function employeeReport(req, res, next) {
   try {

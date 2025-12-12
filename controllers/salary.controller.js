@@ -6,10 +6,12 @@ import {
   ATTENDANCE_STATUSES,
   SALARY_COMPONENT,
   SALARY_STATUS,
+  SALARY_STRUCTURE_STATUS,
 } from "../config/constant.js";
 import { sendEmail } from "../services/email.service.js";
 import { formatFullDate, validationMonthYear } from "../utils/date.js";
 import { salaryEmailTemplate } from "../utils/emailTemplates.js";
+import Salary_Structure from "../models/salaryStructure.model.js";
 
 export async function generateSalary(req, res) {
   try {
@@ -37,7 +39,15 @@ export async function generateSalary(req, res) {
 
     const { m, y, startDate, endDate, error } = result;
 
-    const basicSalary = employee.basicSalary;
+    const salaryStructure = await Salary_Structure.findOne({
+      employeeId,
+      status: SALARY_STRUCTURE_STATUS.ACTIVE,
+    });
+    if (!salaryStructure) {
+      return res.status(400).json({ message: "Salary Structure not found" });
+    }
+
+    const basicSalary = salaryStructure.basicPay;
 
     //per day salry
     const dayInMonth = new Date(y, m, 0).getDate();
