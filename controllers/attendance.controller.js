@@ -1,53 +1,85 @@
 import Attendance from "../models/attendance.model.js";
-import { ROLES } from "../config/constant.js";
-import Leave from "../models/leave.model.js";
+import Employee from "../models/employee.model.js";
+import { sendEmail } from "../services/email.service.js";
+import { ROLES, ATTENDANCE_STATUSES } from "../config/constant.js";
+import { formatFullDate, validationMonthYear } from "../utils/date.js";
+import { leaveEmailTemplate } from "../utils/emailTemplates.js";
 
 export async function markAttendance(req, res) {
   try {
     if (![ROLES.HR, ROLES.SUPERADMIN].includes(req.user.role)) {
       return res.status(403).json({ msg: "Only HR can mark attendance" });
     }
-
+    const employeeId = req.params.id;
     const { date, status, leaveType } = req.body;
-    const employeeId = req.user.employeeId;
 
-    if (!employeeId) {
+    if (!employeeId)
       return res.status(400).json({ msg: "Employee ID is required" });
+    if (!date) return res.status(400).json({ msg: "Date is required" });
+    if (!status) return res.status(400).json({ msg: "Status is required" });
+
+    const employee = await Employee.findById(employeeId);
+    if (!employee) return res.status(404).json({ msg: "Employee not found" });
+
+    let updateData = {
+      employeeId,
+      date,
+      status,
+      leaveType:
+        status === ATTENDANCE_STATUSES.ATTENDED ? null : leaveType || null,
+    };
+
+    const formattedDate = formatFullDate(new Date());
+    let attendance;
+
+    if (status === ATTENDANCE_STATUSES.ATTENDED) {
+      attendance = await Attendance.findOneAndUpdate(
+        { employeeId, date },
+        updateData,
+        { upsert: true, new: true }
+      );
+      return res.status(201).json({
+        success: true,
+        message: "Attendance marked",
+        data: attendance,
+      });
     }
-    if (!date || !status) {
-      return res.status(400).json({ msg: "Date and Status are required" });
-    }
 
-    const d = new Date(date);
-    d.setHours(0, 0, 0, 0);
+    if (status === ATTENDANCE_STATUSES.LEAVE) {
+      if (employee.usedLeaves < employee.allowedLeaves) {
+        employee.usedLeaves += 1;
+        await employee.save();
 
-    //1) MARK ATTENDANCE
+        updateData.isPaidLeave = true;
+        updateData.status = ATTENDANCE_STATUSES.LEAVE;
 
-    const attendance = await Attendance.findOneAndUpdate(
-      { employeeId, date: d },
-      { employeeId, date: d, status, leaveType: leaveType || null },
-      { upsert: true, new: true }
-    );
-    //deduction
-
-    if (status === "Leave" && leaveType) {
-      const leave = await Leave.findOne({ employeeId });
-
-      if (leave) {
-        if (leaveType === "Privilege" && leave.privilege > 0) {
-          leave.privilege -= 1;
-        }
-        if (leaveType === "Sick" && leave.sick > 0) {
-          leave.sick -= 1;
-        }
-
-        await leave.save();
+        //send email - approved leave
+        await sendEmail({
+          to: employee.email,
+          subject: "Your Leave is Approved",
+          html: leaveEmailTemplate.approved({
+            name: employee.name,
+            date: formattedDate,
+          }),
+        });
+      } else {
+        updateData.isPaidLeave = false;
+        updateData.status = ATTENDANCE_STATUSES.LWP;
       }
     }
 
-    return res.json({
-      msg: "Attendance / Leave marked successfully",
-      attendance,
+    attendance = await Attendance.findOneAndUpdate(
+      { employeeId, date },
+      updateData,
+      {
+        upsert: true,
+        new: true,
+      }
+    );
+    return res.status(201).json({
+      success: true,
+      message: "Leave marked",
+      data: attendance,
     });
   } catch (err) {
     return res.status(500).json({ msg: "Server error", error: err.message });
@@ -55,35 +87,47 @@ export async function markAttendance(req, res) {
 }
 
 // GET ATTENDANCE
-export async function getAttendance(req, res) {
+
+export async function getAttendance(req, res, _next) {
   try {
-    const employeeId = req.body.employeeId;
-    const user = req.user;
-    let filter = {};
+    const { month, year } = req.body;
+    const employeeId = req.params.id;
 
-    if (user.role !== ROLES.HR && user.role !== ROLES.SUPERADMIN) {
-      filter.employeeId = user.id; // employee only sees own attendance
-    } else if (req.query.employeeId) {
-      filter.employeeId = req.query.employeeId; // HR/Superadmin can filter by emplyoyee Id
+    if (!employeeId) {
+      return res.status(400).json({ message: "Employee Id is required " });
     }
 
-    //get by month /year
-    const { month, year } = req.query;
-    if (month && year) {
-      filter.date = {
-        $gte: new Date(year, month - 1, 1),
-        $lte: new Date(year, month, 0),
-      };
-    } else if (year) {
-      filter.date = {
-        $gte: new Date(year, 0, 1),
-        $lte: new Date(year, 11, 31),
-      };
+    const result = validationMonthYear(month, year);
+    if (result.error) {
+      return res.status(400).json({ message: result.error });
     }
 
-    const records = await Attendance.find(filter);
-    return res.json(records);
+    const { startDate, endDate } = result;
+
+    const attendanceRecords = await Attendance.find({
+      employeeId,
+      date: { $gte: startDate, $lte: endDate },
+    }).lean();
+
+    let leaveCount = 0;
+    let paidLeaveCount = 0;
+
+    attendanceRecords.forEach((r) => {
+      if (r.status === "") {
+        leaveCount++;
+        if (r.isPaidLeave) paidLeaveCount++;
+      }
+    });
+
+    return res.json({
+      success: true,
+      totalDays: attendanceRecords.length,
+      leaveCount,
+      paidLeaveCount,
+      attendance: attendanceRecords,
+    });
   } catch (err) {
-    return res.status(500).json({ msg: "Server error", error: err.message });
+    console.log(err);
+    _next(err);
   }
 }

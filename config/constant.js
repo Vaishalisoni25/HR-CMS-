@@ -5,29 +5,42 @@ export const ROLES = {
 };
 
 export const ATTENDANCE_STATUSES = {
-  ATTENDED: "Attended",
-  ABSENT: "Absent",
-  LEAVE: "Leave",
-  HALF_DAY: "halfDay",
-  LWP: "LWP",
+  ATTENDED: "attended",
+  ABSENT: "absent",
+  LEAVE: "leave",
+  HALF_DAY: "half_day",
+  LWP: "lwp",
   //TODAY_DATE: "Today-Date",
 };
 export const LEAVE_TYPES = {
-  SICK: "Sick",
-  LEAVE: "Leave",
-  HALFDAY: "HalfDay",
-  PRIVILEGE: "Privilege",
-  WFH: "WFH",
-  LWP: "LWP",
+  SICK: "sick",
+  LEAVE: "leave",
+  HALFDAY: "half_day",
+  PRIVILEGE: "privilege",
+  WFH: "wfh",
+  LWP: "lwp",
 };
 export const SALARY_COMPONENT = {
-  BASIC_SALARY: "BASIC_SALARY",
-  BONUS: "BONUS",
-  PF: "PF",
+  BASIC_SALARY: "basic_salary",
+  BONUS: "bonus",
+  PF: "pf",
+  TDS: "tds",
+  OVERTIME: "overtime",
+  LWP_DEDUCTION: "lwp-deduction",
 };
 
 export const SALARY_STATUS = {
-  GENERATED: "GENERATED",
-  RELEASED: "RELEASED",
-  HOLD: "HOLD",
+  GENERATED: "generated",
+  RELEASED: "released",
+  HOLD: "hold",
 };
+
+export const SETTING_COMPONENT = {};
+
+/*
+Send Auto Email
+- create employee (login details - email, pass)
+- mark leave
+- generate salary
+
+*/

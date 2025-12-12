@@ -3,6 +3,7 @@ import jwt from "jsonwebtoken";
 const { sign } = jwt;
 
 import { hash, compare } from "bcrypt";
+import { customError } from "../utils/customError.js";
 
 const createToken = (user) => {
   return sign(
@@ -12,11 +13,11 @@ const createToken = (user) => {
       role: user.role,
     },
     process.env.JWT_SECRET,
-    { expiresIn: "7d" }
+    { expiresIn: "9d" }
   );
 };
 
-export async function register(req, res) {
+export async function register(req, res, next) {
   try {
     if (req.user.role !== "hr" && req.user.role !== "superadmin") {
       return res.status(403).json({ message: "Access denied" });
@@ -24,7 +25,9 @@ export async function register(req, res) {
     const { name, email, password, role } = req.body;
 
     const existing = await User.findOne({ email });
-    if (existing) return res.status(400).json({ message: "User exists" });
+    if (existing) {
+      return next(new customError(""));
+    }
 
     const hashedPass = await hash(password, 10);
 
@@ -54,9 +57,9 @@ export async function login(req, res) {
   res.json({ token: createToken(user) });
 }
 
-export async function getAllUsers(req, res) {
+export async function getAllUsers(_req, res) {
   try {
-    const users = await User.find();
+    const users = await User.find().lean();
     return res.json(users);
   } catch (error) {
     return res
@@ -70,16 +73,16 @@ export async function getUserById(req, res) {
     const { id } = req.params;
 
     if (req.user.role === "employee" && req.user.id !== id) {
-      return res.status(403).json({ message: "Access denied" });
+      return next(new customError(""));
     }
 
     if (req.user.role === "employee") {
-      return res.status(403).json({ message: "Access denied" });
+      return next(new customError(""));
     }
     const user = await User.findById(res.params.id);
 
     if (!user) {
-      return res.status(404).json({ message: "User not found" });
+      return next("");
     }
     res.json(user);
   } catch (err) {
@@ -94,22 +97,29 @@ export async function updateUserById(req, res) {
     });
 
     if (!user) {
-      return res.status(404).json({ message: "user not found" });
+      return next(new customError("user not found", 404));
     }
-    res.json(user);
+    res.json({
+      success: true,
+      message: "user updated successfully",
+      data: user,
+    });
   } catch (err) {
-    res.status(400).json({ message: err.message });
+    next(err);
   }
 }
 
-export async function deleteUserById(req, res) {
+export async function deleteUserById(_req, res, next) {
   try {
     const user = await User.findByIdAndDelete(res.params.id);
     if (!user) {
-      return res.status(404).json({ message: " user not  found" });
+      return next(new customError("user not found", 404));
     }
-    res.json({ message: "User Deleted Successefully", user });
+    res.json({
+      success: true,
+      message: "user deleted successfully",
+    });
   } catch (err) {
-    res.status(400).json({ message: err.message });
+    next(err);
   }
 }

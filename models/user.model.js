@@ -14,12 +14,11 @@ const UserSchema = new Schema({
     type: String,
     required: true,
     minLength: 5,
-    select: false,
   },
 
   role: {
     type: String,
-    enum: ["superadmin", "hr", "employee"],
+    enum: ["superadmin", "hr"],
     default: "hr",
   },
   createdAt: {

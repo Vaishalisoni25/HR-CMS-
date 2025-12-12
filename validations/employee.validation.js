@@ -3,15 +3,13 @@ import { z } from "zod";
 export const employeeSchema = z.object({
   name: z.string(),
   email: z.string().email(),
-  password: z.string().min(5),
   phone: z.string().optional(),
-  joiningDate: z.string().datetime(),
-
+  joiningDate: z.string(),
+  employmentType: z.string(),
   allowedLeaves: z.number().optional(),
-  usedLeaves: z.number().optional(),
-
-  department: z.string().optional(),
+  position: z.string().optional(),
   companyCode: z.string().optional(),
+  basicSalary: z.number().optional(),
 
-  status: z.enum(["Active", "Inactive"]).optional(),
+  status: z.enum(["Active", "Inactive"]).optional(), // Need to ask
 });

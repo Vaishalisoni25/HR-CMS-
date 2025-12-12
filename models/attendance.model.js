@@ -1,4 +1,5 @@
 import { Schema, model } from "mongoose";
+import { ATTENDANCE_STATUSES, LEAVE_TYPES } from "../config/constant.js";
 
 const AttendanceSchema = new Schema(
   {
@@ -15,14 +16,14 @@ const AttendanceSchema = new Schema(
 
     status: {
       type: String,
-      enum: ["Absent", "Attended", "Leave", "LWP", "WFH", "Half-Day"],
+      enum: Object.values(ATTENDANCE_STATUSES),
 
       required: true,
     },
     //Store which type leave was applied
     leaveType: {
       type: String,
-      enum: ["Sick", "Privilege", "WFH", "LWP"],
+      enum: Object.values(LEAVE_TYPES),
       default: null,
     },
 

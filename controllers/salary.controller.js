@@ -1,101 +1,170 @@
 import Salary from "../models/salary.model.js";
 import Employee from "../models/employee.model.js";
 import Attendance from "../models/attendance.model.js";
-import { ROLES, SALARY_STATUS } from "../config/constant.js";
+import mongoose from "mongoose";
+import {
+  ATTENDANCE_STATUSES,
+  SALARY_COMPONENT,
+  SALARY_STATUS,
+} from "../config/constant.js";
+import { sendEmail } from "../services/email.service.js";
+import { formatFullDate, validationMonthYear } from "../utils/date.js";
+import { salaryEmailTemplate } from "../utils/emailTemplates.js";
 
 export async function generateSalary(req, res) {
   try {
-    const { employeeId, month, year, earnings, deductions } = req.body;
+    const employeeId = req.params.id;
+    if (!employeeId) {
+      return res.status(400).json({ message: "Employee id is required" });
+    }
+    const {
+      month,
+      year,
+      overtime = 0,
+      bonus = 0,
+      otherAdjustment = 0,
+    } = req.body;
 
     const employee = await Employee.findById(employeeId);
 
     if (!employee) return res.status(404).json({ msg: "Employee not found" });
 
-    //count LWP days in this month
+    const result = validationMonthYear(month, year);
 
-    const LWPDays = await Attendance.countDocuments({
-      employeeId,
-      status: "LWP",
+    if (result.error) {
+      return res.status(400).json({ message: result.error });
+    }
+
+    const { m, y, startDate, endDate, error } = result;
+
+    const basicSalary = employee.basicSalary;
+
+    //per day salry
+    const dayInMonth = new Date(y, m, 0).getDate();
+    const perDaySalary = basicSalary / dayInMonth;
+
+    // Get Attendance of selected month
+    const attendanceRecords = await Attendance.find({
+      employeeId: new mongoose.Types.ObjectId(employeeId),
       date: {
-        $gte: new Date(year, month - 1, 1),
-        $lte: new Date(year, month, 0),
+        $gte: startDate,
+        $lte: endDate,
       },
     });
-    //per day salry
-    const dayInMonth = new Date(year, month, 0).getDate();
-    const perDaySalary = basicSalary / dayInMonth;
+
+    const { leaveCount, paidLeaveCount } = attendanceRecords.reduce(
+      (acc, record) => {
+        if (record.status === ATTENDANCE_STATUSES.LEAVE) {
+          acc.leaveCount++;
+          if (record.isPaidLeave) acc.paidLeaveCount++;
+        }
+        return acc;
+      },
+      { leaveCount: 0, paidLeaveCount: 0 }
+    );
+
+    const lwpDeduction = (leaveCount - paidLeaveCount) * perDaySalary;
+
+    const earnings = {
+      [SALARY_COMPONENT.BASIC_SALARY]: basicSalary,
+      [SALARY_COMPONENT.OVERTIME]: overtime,
+      [SALARY_COMPONENT.BONUS]: bonus,
+      leaveEncashment: paidLeaveCount * perDaySalary,
+      otherAdjustment,
+    };
+
+    const deductions = {
+      [SALARY_COMPONENT.TDS]: 0,
+      [SALARY_COMPONENT.PF]: basicSalary * 0.12,
+      [SALARY_COMPONENT.LWP_DEDUCTION]: lwpDeduction,
+    };
+
+    const totalEarning =
+      earnings[SALARY_COMPONENT.BASIC_SALARY] +
+      earnings[SALARY_COMPONENT.OVERTIME] +
+      earnings[SALARY_COMPONENT.BONUS] +
+      earnings.leaveEncashment +
+      earnings.otherAdjustment;
+
+    // total deduction
+    const totalDeduction =
+      deductions[SALARY_COMPONENT.PF] +
+      deductions[SALARY_COMPONENT.TDS] +
+      deductions[SALARY_COMPONENT.LWP_DEDUCTION];
+
+    const netSalary = totalEarning - totalDeduction;
 
     const salary = await Salary.create({
       employeeId,
-      month,
-      year,
-
-      deduction: {
-        LWP: deductions,
-      },
-      salary,
+      month: m,
+      year: y,
+      earnings,
+      deductions,
+      netSalary,
       status: SALARY_STATUS.GENERATED,
     });
+
+    const formattedDate = formatFullDate();
+
+    await sendEmail({
+      to: employee.email,
+      subject: "Your Salary is generated",
+      html: salaryEmailTemplate.generated({
+        name: employee.name,
+        date: formattedDate,
+        earnings,
+        deductions,
+        netSalary,
+      }),
+    });
     return res.status(201).json({
-      msg: "Salary Generated Successfully",
-      salary,
+      message: "Salary generated successfully",
+      data: salary,
     });
   } catch (err) {
     console.error(err);
-    return res
-      .status(500)
-      .json({ msg: "Can't Generate Salary", error: err.message });
+    return res.status(500).json({
+      message: "Server Error",
+      error: err?.message || err,
+      stack: err?.stack,
+    });
   }
 }
 //get salary records
 
 export async function getSalary(req, res) {
   try {
-    const requestedId = req.params.id; // salary for which employee?
+    const employeeId = req.params.id;
+    const { month, year } = req.body;
 
-    let filter = {};
-
-    if (req.user.role === ROLES.EMPLOYEE) {
-      // employee can only view their own salary
-      if (requestedId !== req.user.id) {
-        return res.status(403).json({ msg: "Access denied" });
-      }
-      filter.employeeId = req.user.id;
-    } else {
-      // HR / SUPERADMIN can view any employee salary
-      if (requestedId) filter.employeeId = requestedId;
+    if (!employeeId) {
+      return res.status(400).json({ message: "Employee Id is required" });
     }
-    const salaries = await Salary.find(filter).populate(
-      "employeeId",
-      "name email"
-    );
+    const result = validationMonthYear(month, year);
 
-    return res.json(salaries);
-  } catch (err) {
-    return res.status(500).json({
-      msg: "Can't get Salary",
-      error: err.message,
+    if (result.error) {
+      return res.status(400).json({ message: result.error });
+    }
+
+    const { m, y } = result;
+
+    // ----- Find salary -----
+    const salary = await Salary.findOne({
+      employeeId,
+      month: m,
+      year: y,
     });
-  }
-}
-
-//salary update by HR/Superadmin
-
-export async function updateSalary(req, res) {
-  try {
-    if (![ROLES.HR, ROLES.SUPERADMIN].includes(req.user.role)) {
-      return res.status(403).json({ msg: "Access denied" });
-    }
-    const id = req.params.id;
-    const updates = req.body;
-
-    const salary = await salary.findByIdandUpdate(id, updates, { new: true });
 
     if (!salary) {
-      return res.status(404).json({ msg: "salary record not found" });
+      return res.status(404).json({ message: "Salary not found" });
     }
-    res.json({ msg: "Salary updated successfully", salary });
+
+    return res.status(200).json({
+      success: true,
+      data: salary,
+    });
   } catch (err) {
-    res.status(500).json({ msg: "Server error", error: err.message });
+    console.error(err);
+    return res.status(500).json({ msg: "Server Error", err });
   }
 }
