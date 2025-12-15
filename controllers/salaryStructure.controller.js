@@ -12,7 +12,6 @@ export async function createSalaryStructure(req, res, next) {
       HRA,
       basicPay,
       specialAllowance,
-      grossSalary,
       effectiveFrom,
       effectiveTo,
       status,
@@ -69,14 +68,15 @@ export async function getSalaryStructureById(req, res, next) {
   try {
     const employeeId = req.params.id;
     if (!employeeId) {
-      return next(new customError("Employee ID is required", 400));
+      return res.status(400).json({ message: "Employee Id required" });
     }
 
     const salaryStructure = await Salary_Structure.findById(employeeId);
 
     if (!salaryStructure) {
-      return next(new customError("Salary Structure is required", 404));
+      return res.status(401).json({ message: "Salary Structure not found" });
     }
+    console.log(salaryStructure);
     res.json({
       success: true,
       message: "Employee Salary Structure fetched successfully",

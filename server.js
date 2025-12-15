@@ -4,6 +4,7 @@ import dotenv from "dotenv";
 import connectDB from "./config/connectDB.js";
 import path from "path";
 import { fileURLToPath } from "url";
+import cors from "cors";
 
 import authRoutes from "./routes/auth.route.js";
 import attendanceRoute from "./routes/attendance.route.js";
@@ -34,7 +35,12 @@ app.use("/api/salaryStructure", salaryStructureRoute);
 if (process.env.NODE_ENV === "production") {
   const clientPath = path.join(__dirname, "client", "dist");
 
-  app.use(express.static(clientPath));
+  app.use(
+    cors({
+      origin: true,
+      credentials: true,
+    })
+  );
 
   app.get("*", (_req, res) => {
     res.sendFile(path.join(clientPath, "index.html"));

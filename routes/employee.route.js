@@ -23,7 +23,7 @@ router.get("/", auth([ROLES.SUPERADMIN, ROLES.HR]), getEmployees);
 
 router.get("/:id", auth(), getEmployeeById);
 
-router.put(
+router.patch(
   "/:id",
   auth([ROLES.HR, ROLES.SUPERADMIN]),
   validate(employeeSchema),
