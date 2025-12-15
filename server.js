@@ -43,7 +43,7 @@ if (process.env.NODE_ENV === "production") {
 app.use((err, _req, res, _next) => {
   console.error(err);
   if (err.name === "ZodError") {
-    returnres.status(400).json({
+    return res.status(400).json({
       success: false,
       message: "Validation failed",
       errors: err.errors,
