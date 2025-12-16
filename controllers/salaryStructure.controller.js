@@ -74,9 +74,9 @@ export async function getSalaryStructureById(req, res, next) {
     const salaryStructure = await Salary_Structure.findById(employeeId);
 
     if (!salaryStructure) {
-      return res.status(401).json({ message: "Salary Structure not found" });
+      return res.status(404).json({ message: "Salary Structure not found" });
     }
-    console.log(salaryStructure);
+
     res.json({
       success: true,
       message: "Employee Salary Structure fetched successfully",
@@ -88,12 +88,13 @@ export async function getSalaryStructureById(req, res, next) {
 }
 export async function updateSalaryStructureById(req, res, next) {
   try {
-    const employeeId = req.params.id;
-    if (!employeeId) {
-      return res.status(400).json({ message: "Employee Id required" });
+    const salaryStructureId = req.params.id;
+    if (!salaryStructureId) {
+      return res.status(400).json({ message: "Salary Structure  Id required" });
     }
+
     const salaryStructure = await Salary_Structure.findByIdAndUpdate(
-      employeeId,
+      salaryStructureId,
       req.body,
       {
         new: true,
@@ -101,40 +102,43 @@ export async function updateSalaryStructureById(req, res, next) {
     );
 
     if (!salaryStructure) {
-      return res.status(401).json({ message: "Salary Structure not found" });
+      return res.status(404).json({ message: "Salary Structure not found" });
     }
-    console.log(salaryStructure);
     res.json({
       success: true,
       message: "Employee Salary Structure updated successfully",
       data: salaryStructure,
     });
   } catch (err) {
-    return res.status(403), json({ message: "Salary Structure update denied" });
+    next(err);
+    return res.status(500), json({ message: "Salary Structure update denied" });
   }
 }
 
 export async function deleteSalaryStructureById(req, res, next) {
   try {
-    const employeeId = req.params.id;
-    if (!employeeId) {
-      return res.status(400).json({ message: "Employee Id required" });
+    const salaryStructureId = req.params.id;
+    if (!salaryStructureId) {
+      return res.status(400).json({ message: "Salary Structure Id required" });
     }
 
     const salaryStructure = await Salary_Structure.findByIdAndDelete(
-      employeeId
+      salaryStructureId,
+      req.body,
+      { new: true }
     );
 
     if (!salaryStructure) {
       return res.status(401).json({ message: "Salary Structure not found" });
     }
 
-    res.json({
+    res.status(200).json({
       success: true,
       message: "Employee Salary Structure deleted successfully",
       data: salaryStructure,
     });
   } catch (err) {
+    next(err);
     return (
       res.status(403), json({ message: "Salary Structure deleted denied" })
     );

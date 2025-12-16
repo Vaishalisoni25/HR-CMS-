@@ -10,8 +10,8 @@ export const AdjustmentSchema = z.object({
     ),
   month: z.number().min(1).max(12),
   year: z.number().min(2000),
-  type: z.enum([ADD, LESS]),
+  type: z.enum(["ADD", "LESS"]),
+  amount: z.number(),
   description: z.string(),
   image: z.string().optional(),
-  createdAt: z.coerce.date(),
 });

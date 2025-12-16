@@ -12,6 +12,7 @@ import { sendEmail } from "../services/email.service.js";
 import { formatFullDate, validationMonthYear } from "../utils/date.js";
 import { salaryEmailTemplate } from "../utils/emailTemplates.js";
 import Salary_Structure from "../models/salaryStructure.model.js";
+import Other_Adjustment from "../models/otherAdjustment.model.js";
 
 export async function generateSalary(req, res) {
   try {
@@ -31,7 +32,7 @@ export async function generateSalary(req, res) {
       return res.status(400).json({ message: result.error });
     }
 
-    const { m, y, startDate, endDate, error } = result;
+    const { m, y, startDate, endDate } = result;
 
     const salaryStructure = await Salary_Structure.findOne({
       employeeId,
@@ -43,23 +44,25 @@ export async function generateSalary(req, res) {
 
     const basicSalary = salaryStructure.basicPay;
 
-    const adjustment = await otherAdjustment.find({
+    // ---------Other Adjustment --------
+
+    const adjustments = await Other_Adjustment.find({
       employeeId,
       month: m,
       year: y,
     });
 
-    const totalAdjustment = otherAdjustment.reduce((sum, ad) => {
+    const totalAdjustment = adjustments.reduce((sum, adj) => {
       return adj.type === "ADD" ? sum + adj.amount : sum - adj.amount;
     }, 0);
 
-    earnings.otherAdjustment = totalAdjustment;
+    //------------per day salry------------
 
-    //per day salry
     const dayInMonth = new Date(y, m, 0).getDate();
     const perDaySalary = basicSalary / dayInMonth;
 
-    // Get Attendance of selected month
+    // -----------Get Attendance of selected month --------
+
     const attendanceRecords = await Attendance.find({
       employeeId: new mongoose.Types.ObjectId(employeeId),
       date: {
@@ -81,31 +84,53 @@ export async function generateSalary(req, res) {
 
     const lwpDeduction = (leaveCount - paidLeaveCount) * perDaySalary;
 
+    //---------Earnings--------------
+
     const earnings = {
       [SALARY_COMPONENT.BASIC_SALARY]: basicSalary,
       [SALARY_COMPONENT.OVERTIME]: overtime,
       [SALARY_COMPONENT.BONUS]: bonus,
       leaveEncashment: paidLeaveCount * perDaySalary,
-      otherAdjustment,
+      adjustment: totalAdjustment,
     };
 
-    const deductions = {
-      [SALARY_COMPONENT.TDS]: 0,
-      [SALARY_COMPONENT.PF]: basicSalary * 0.12,
-      [SALARY_COMPONENT.LWP_DEDUCTION]: lwpDeduction,
-    };
-
+    //-------Total Earnings-------
     const totalEarning =
       earnings[SALARY_COMPONENT.BASIC_SALARY] +
       earnings[SALARY_COMPONENT.OVERTIME] +
       earnings[SALARY_COMPONENT.BONUS] +
       earnings.leaveEncashment +
-      earnings.otherAdjustment;
+      earnings.adjustment;
 
-    // total deduction
+    const tds = totalEarning * 0.1;
+
+    //-----PT------------------
+
+    let professionalTax = 0;
+
+    if (totalEarning <= 18750) {
+      professionalTax = 0;
+    } else if (totalEarning <= 25000) {
+      professionalTax = 125;
+    } else if (totalEarning <= 33333) {
+      professionalTax = 167;
+    } else {
+      professionalTax = m === 3 ? 212 : 208; // March = last month
+    }
+
+    const deductions = {
+      [SALARY_COMPONENT.TDS]: tds,
+      professionalTax,
+      [SALARY_COMPONENT.PF]: basicSalary * 0.12,
+      [SALARY_COMPONENT.LWP_DEDUCTION]: lwpDeduction,
+    };
+
+    //---------- total deduction---------
+
     const totalDeduction =
       deductions[SALARY_COMPONENT.PF] +
       deductions[SALARY_COMPONENT.TDS] +
+      deductions.professionalTax +
       deductions[SALARY_COMPONENT.LWP_DEDUCTION];
 
     const netSalary = totalEarning - totalDeduction;
@@ -134,6 +159,7 @@ export async function generateSalary(req, res) {
       }),
     });
     return res.status(201).json({
+      success: true,
       message: "Salary generated successfully",
       data: salary,
     });

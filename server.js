@@ -13,6 +13,7 @@ import salaryRoute from "./routes/salary.route.js";
 import settingsRoute from "./routes/settings.route.js";
 import reportRoute from "./routes/report.route.js";
 import salaryStructureRoute from "./routes/salaryStructure.route.js";
+import adjustmentRoute from "./routes/otherAdjustment.route.js";
 
 dotenv.config();
 const app = express();
@@ -31,6 +32,7 @@ app.use("/api/salary", salaryRoute);
 app.use("/api/settings", settingsRoute);
 app.use("/api/report", reportRoute);
 app.use("/api/salaryStructure", salaryStructureRoute);
+app.use("/api/adjustment", adjustmentRoute);
 
 if (process.env.NODE_ENV === "production") {
   const clientPath = path.join(__dirname, "client", "dist");

@@ -1,4 +1,7 @@
 import mongoose from "mongoose";
+import { number } from "zod";
+const { Schema, model } = mongoose;
+
 const adjustmentSchema = new Schema({
   employeeId: {
     type: Schema.Types.ObjectId,
@@ -11,6 +14,11 @@ const adjustmentSchema = new Schema({
     type: String,
     enum: ["ADD", "LESS"],
     required: true,
+  },
+
+  amount: {
+    type: number,
+    default: 0,
   },
 
   description: { type: String },
