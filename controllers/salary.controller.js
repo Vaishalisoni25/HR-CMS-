@@ -19,13 +19,7 @@ export async function generateSalary(req, res) {
     if (!employeeId) {
       return res.status(400).json({ message: "Employee id is required" });
     }
-    const {
-      month,
-      year,
-      overtime = 0,
-      bonus = 0,
-      otherAdjustment = 0,
-    } = req.body;
+    const { month, year, overtime = 0, bonus = 0 } = req.body;
 
     const employee = await Employee.findById(employeeId);
 
@@ -48,6 +42,18 @@ export async function generateSalary(req, res) {
     }
 
     const basicSalary = salaryStructure.basicPay;
+
+    const adjustment = await otherAdjustment.find({
+      employeeId,
+      month: m,
+      year: y,
+    });
+
+    const totalAdjustment = otherAdjustment.reduce((sum, ad) => {
+      return adj.type === "ADD" ? sum + adj.amount : sum - adj.amount;
+    }, 0);
+
+    earnings.otherAdjustment = totalAdjustment;
 
     //per day salry
     const dayInMonth = new Date(y, m, 0).getDate();
