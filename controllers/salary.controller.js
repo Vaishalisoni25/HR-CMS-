@@ -20,7 +20,7 @@ export async function generateSalary(req, res) {
     if (!employeeId) {
       return res.status(400).json({ message: "Employee id is required" });
     }
-    const { month, year, overtime = 0, bonus = 0 } = req.body;
+    const { month, year, overtime = 0, bonus = 0, otherAdjustment } = req.body;
 
     const employee = await Employee.findById(employeeId);
 
@@ -43,6 +43,10 @@ export async function generateSalary(req, res) {
     }
 
     const basicSalary = salaryStructure.basicPay;
+
+    if (!basicSalary) {
+      return res.status(404).json({ message: " Basic Salary not found" });
+    }
 
     // ---------Other Adjustment --------
 
@@ -90,19 +94,19 @@ export async function generateSalary(req, res) {
       [SALARY_COMPONENT.BASIC_SALARY]: basicSalary,
       [SALARY_COMPONENT.OVERTIME]: overtime,
       [SALARY_COMPONENT.BONUS]: bonus,
-      leaveEncashment: paidLeaveCount * perDaySalary,
-      adjustment: totalAdjustment,
+      [SALARY_COMPONENT.LEAVE_ENCASHMENT]: paidLeaveCount * perDaySalary,
+      [SALARY_COMPONENT.OTHER_ADJUSTMENTS]: totalAdjustment,
     };
-
+    const round = (n) => Math.round(n * 100) / 100;
     //-------Total Earnings-------
     const totalEarning =
       earnings[SALARY_COMPONENT.BASIC_SALARY] +
       earnings[SALARY_COMPONENT.OVERTIME] +
       earnings[SALARY_COMPONENT.BONUS] +
-      earnings.leaveEncashment +
-      earnings.adjustment;
-
-    const tds = totalEarning * 0.1;
+      earnings[SALARY_COMPONENT.LEAVE_ENCASHMENT] +
+      earnings[SALARY_COMPONENT.OTHER_ADJUSTMENTS];
+    // -------- TDS (10%) ----------
+    const tds = round(totalEarning * 0.1);
 
     //-----PT------------------
 
@@ -115,12 +119,13 @@ export async function generateSalary(req, res) {
     } else if (totalEarning <= 33333) {
       professionalTax = 167;
     } else {
-      professionalTax = m === 3 ? 212 : 208; // March = last month
+      // Professional Tax: ₹208 for 11 months, ₹212 in March (last month of FY)
+      professionalTax = m === 3 ? 212 : 208;
     }
 
     const deductions = {
       [SALARY_COMPONENT.TDS]: tds,
-      professionalTax,
+      [SALARY_COMPONENT.PROFESSIONAL_TAX]: professionalTax,
       [SALARY_COMPONENT.PF]: basicSalary * 0.12,
       [SALARY_COMPONENT.LWP_DEDUCTION]: lwpDeduction,
     };
@@ -130,10 +135,21 @@ export async function generateSalary(req, res) {
     const totalDeduction =
       deductions[SALARY_COMPONENT.PF] +
       deductions[SALARY_COMPONENT.TDS] +
-      deductions.professionalTax +
+      deductions[SALARY_COMPONENT.PROFESSIONAL_TAX] +
       deductions[SALARY_COMPONENT.LWP_DEDUCTION];
 
-    const netSalary = totalEarning - totalDeduction;
+    const netSalary = round(totalEarning - totalDeduction);
+
+    const existingSalary = await Salary.findOne({
+      employeeId,
+      month: m,
+      year: y,
+    });
+    if (existingSalary) {
+      return res
+        .status(400)
+        .json({ message: "Salary already generated for this month" });
+    }
 
     const salary = await Salary.create({
       employeeId,
@@ -174,7 +190,7 @@ export async function generateSalary(req, res) {
 }
 //get salary records
 
-export async function getSalary(req, res) {
+export async function getSalaryById(req, res) {
   try {
     const employeeId = req.params.id;
     const { month, year } = req.body;
@@ -208,5 +224,32 @@ export async function getSalary(req, res) {
   } catch (err) {
     console.error(err);
     return res.status(500).json({ msg: "Server Error", err });
+  }
+}
+export async function getAllSalary(req, res, next) {
+  try {
+    const { month, year } = req.query;
+
+    if (!month || !year) {
+      return res.status(400).json({ message: "Month and Year are required" });
+    }
+    const result = validationMonthYear(month, year);
+
+    if (result.error) {
+      return res.status(400).json({ message: result.error });
+    }
+
+    const { m, y } = result;
+    const salary = await Salary.find({
+      month: m,
+      year: y,
+    }).lean();
+    res.status(200).json({
+      success: true,
+      message: " All Salaries fetched successfully",
+      data: salary,
+    });
+  } catch (err) {
+    next(err);
   }
 }

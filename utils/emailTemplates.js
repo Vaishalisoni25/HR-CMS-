@@ -1,6 +1,3 @@
-import { date } from "zod";
-import { formatFullDate } from "./date.js";
-
 export const employeeEmailTemplate = {
   created: ({ name, date, email, loginPassword }) => `
        <h2>Welcome to Company</h2>
@@ -44,13 +41,14 @@ export const salaryEmailTemplate = {
       <li><b>Basic Salary:</b> ₹${earnings.basic_salary}</li>
       <li><b>Bonus:</b> ₹${earnings.bonus}</li>
       <li><b>Overtime:</b> ₹${earnings.overtime}</li>
-      <li><b>Paid Leave Encashment:</b> ₹${earnings.leaveEncashment}</li>
-      <li><b>Other Adjustments:</b> ₹${earnings.otherAdjustment}</li>
+      <li><b>Paid Leave Encashment:</b> ₹${earnings.leave_encashment}</li>
+      <li><b>Other Adjustments:</b> ₹${earnings.other_adjustment}</li>
     </ul>
 
     <h3 style="color:#444;">Deductions</h3>
     <ul>
       <li><b>PF (12%):</b> ₹${deductions.pf}</li>
+       <li><b>Professional Tax:</b> ₹${deductions.professional_tax}</li>
       <li><b>LWP Deduction:</b> ₹${deductions.lwp_deduction}</li>
       <li><b>TDS:</b> ₹${deductions.tds}</li>
     </ul>

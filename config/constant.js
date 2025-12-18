@@ -26,7 +26,10 @@ export const SALARY_COMPONENT = {
   PF: "pf",
   TDS: "tds",
   OVERTIME: "overtime",
-  LWP_DEDUCTION: "lwp-deduction",
+  PROFESSIONAL_TAX: "professional_tax",
+  LWP_DEDUCTION: "lwp_deduction",
+  OTHER_ADJUSTMENTS: "other_adjustments",
+  LEAVE_ENCASHMENT: "leave_encashment",
 };
 
 export const SALARY_STATUS = {
