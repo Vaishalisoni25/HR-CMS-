@@ -4,6 +4,7 @@ import dotenv from "dotenv";
 import connectDB from "./config/connectDB.js";
 import path from "path";
 import { fileURLToPath } from "url";
+import cors from "cors";
 
 import authRoutes from "./routes/auth.route.js";
 import attendanceRoute from "./routes/attendance.route.js";
@@ -11,6 +12,7 @@ import employeeRoute from "./routes/employee.route.js";
 import salaryRoute from "./routes/salary.route.js";
 import settingsRoute from "./routes/settings.route.js";
 import reportRoute from "./routes/report.route.js";
+import salaryStructureRoute from "./routes/salaryStructure.route.js";
 
 dotenv.config();
 const app = express();
@@ -28,11 +30,17 @@ app.use("/api/attendance", attendanceRoute);
 app.use("/api/salary", salaryRoute);
 app.use("/api/settings", settingsRoute);
 app.use("/api/report", reportRoute);
+app.use("/api/salaryStructure", salaryStructureRoute);
 
 if (process.env.NODE_ENV === "production") {
   const clientPath = path.join(__dirname, "client", "dist");
 
-  app.use(express.static(clientPath));
+  app.use(
+    cors({
+      origin: true,
+      credentials: true,
+    })
+  );
 
   app.get("*", (_req, res) => {
     res.sendFile(path.join(clientPath, "index.html"));
@@ -43,7 +51,7 @@ if (process.env.NODE_ENV === "production") {
 app.use((err, _req, res, _next) => {
   console.error(err);
   if (err.name === "ZodError") {
-    returnres.status(400).json({
+    return res.status(400).json({
       success: false,
       message: "Validation failed",
       errors: err.errors,

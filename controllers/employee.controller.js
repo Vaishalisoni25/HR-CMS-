@@ -65,7 +65,6 @@ export async function createEmployee(req, res, next) {
 
 export async function getEmployees(_req, res, next) {
   try {
-    console.log("running");
     const employees = await Employee.find().lean();
     res.json({
       succcess: true,
