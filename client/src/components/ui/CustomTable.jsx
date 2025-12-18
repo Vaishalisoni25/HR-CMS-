@@ -1,43 +1,5 @@
 'use client';
 
-// import React from 'react';
-// import {
-//   Table,
-//   TableBody,
-//   TableCell,
-//   TableContainer,
-//   TableHead,
-//   TableRow,
-//   Paper,
-// } from '@mui/material';
-
-// const CustomTable = ({ columns = [], rows = [], ...props }) => {
-//   return (
-//     <TableContainer component={Paper}>
-//       <Table {...props}>
-//         <TableHead>
-//           <TableRow>
-//             {columns.map((col) => (
-//               <TableCell key={col.field}>{col.label}</TableCell>
-//             ))}
-//           </TableRow>
-//         </TableHead>
-//         <TableBody>
-//           {rows.map((row, index) => (
-//             <TableRow key={index}>
-//               {columns.map((col) => (
-//                 <TableCell key={col.field}>{row[col.field]}</TableCell>
-//               ))}
-//             </TableRow>
-//           ))}
-//         </TableBody>
-//       </Table>
-//     </TableContainer>
-//   );
-// };
-
-// export default CustomTable;
-
 import React, { useMemo } from 'react';
 import {
   Box,

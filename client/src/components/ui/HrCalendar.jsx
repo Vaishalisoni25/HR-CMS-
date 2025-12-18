@@ -12,24 +12,21 @@ import {
   MenuItem,
   Tooltip,
 } from '@mui/material';
+import CustomButton from './CustomButton';
+import CustomDatePicker from './CustomDatePicker';
 
 // Event types and colors
 const eventTypes = [
-  { label: 'Present', color: 'green' },
-  { label: 'Absent', color: 'red' },
-  { label: 'Work From Home', color: 'blue' },
-  { label: 'Half-day', color: 'orange' },
-  { label: 'Holiday', color: 'purple' },
-  { label: 'Meeting', color: '#1976d2' }, // MUI blue
+  { label: 'Present', color: '#81C784' },        
+  { label: 'Absent', color: '#E57373' },         
+  { label: 'Work From Home', color: '#64B5F6' }, 
+  { label: 'Half-day', color: '#FFB74D' },       
+  { label: 'Holiday', color: '#BA68C8' },        
+  { label: 'Meeting', color: '#90A4AE' },           
 ];
 
 const HRCalendar = () => {
-  const [events, setEvents] = useState([
-    { title: 'Present', date: '2025-12-09', backgroundColor: 'green', description: 'On time' },
-    { title: 'WFH', date: '2025-12-11', backgroundColor: 'blue', description: 'Remote work' },
-    { title: 'Holiday', date: '2025-12-12', backgroundColor: 'purple', description: 'Company holiday' },
-  ]);
-
+  const [events, setEvents] = useState([]);
   const [openModal, setOpenModal] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
    const [selectedEventId, setSelectedEventId] = useState(null);
@@ -55,7 +52,7 @@ const HRCalendar = () => {
   const handleEventClick = (info) => {
     const event = info.event;
     setIsEditing(true);
-    setSelectedEventId(event.id);
+    setSelectedEventId(event.id.toString());
 
     setNewEvent({
       title: event.title,
@@ -70,8 +67,9 @@ const HRCalendar = () => {
   // Handle input changes
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setNewEvent({ ...newEvent, [name]: value });
-    // Apply the color from eventTypes
+    // setNewEvent({ ...newEvent, [name]: value });
+    setNewEvent((prev) => ({ ...prev, [name]: value }));
+
   if (name === 'title') {
     const type = eventTypes.find((t) => t.label === value);
     if (type) {
@@ -94,9 +92,10 @@ const HRCalendar = () => {
       return alert('Please select event type and date');
 
     const newItem = {
-      id: Date.now(),
+      id: Date.now().toString(),
       title: newEvent.title,
-      date: newEvent.date,
+      // date: newEvent.date,
+      start: newEvent.date,
       backgroundColor: newEvent.color,
       description: newEvent.description,
     };
@@ -138,6 +137,7 @@ const HRCalendar = () => {
         plugins={[dayGridPlugin, interactionPlugin]}
         initialView="dayGridMonth"
         events={events}
+        dayMaxEvents={true}
         dateClick={handleDateClick}
         eventClick={handleEventClick} 
         eventContent={(eventInfo) => (
@@ -161,7 +161,7 @@ const HRCalendar = () => {
 
       {/* Modal for adding new events */}
       <Dialog open={openModal} onClose={() => setOpenModal(false)}>
-        {/* <DialogTitle>Add Event / Attendance</DialogTitle> */}
+       
         <DialogTitle>{isEditing ? 'Edit Event' : 'Add Event'}</DialogTitle>
         <DialogContent>
           <TextField
@@ -206,19 +206,19 @@ const HRCalendar = () => {
         </DialogContent>
         <DialogActions>
             {isEditing && (
-            <Button color="error" onClick={handleDeleteEvent}>
+            <CustomButton color="error" variant='outlined' onClick={handleDeleteEvent}>
               Delete
-            </Button>
+            </CustomButton>
           )}
-          <Button onClick={() => setOpenModal(false)}>Cancel</Button>
+          <CustomButton variant="outlined" onClick={() => setOpenModal(false)}>Cancel</CustomButton>
            {isEditing ? (
-            <Button variant="contained" onClick={handleUpdateEvent}>
+            <CustomButton variant="contained" onClick={handleUpdateEvent}>
               Save Changes
-            </Button>
+            </CustomButton>
           ) : (
-          <Button variant="contained" onClick={handleAddEvent}>
+          <CustomButton variant="contained" onClick={handleAddEvent}>
             Add
-          </Button>
+          </CustomButton>
            )}
         </DialogActions>
       </Dialog>

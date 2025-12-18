@@ -38,9 +38,7 @@
   }
 }
 
-/* --------------------
-   Event Chip UI
--------------------- */
+//event chip
 .event-chip {
   padding: 4px;
   border-radius: 6px;
@@ -51,28 +49,27 @@
   display: block;
 }
 
-/* --------------------
-   Event Colors
--------------------- */
+ // Event Colors
+
 .present-event .event-chip {
-  background-color: #2DD4BF; // kepple[400]
+  background-color: #2DD4BF; 
 }
 
 .holiday-event .event-chip {
-  background-color: #FCA5A5; // redOrange[200]
+  background-color: #FCA5A5; 
 }
 
 .wfh-event .event-chip {
-  background-color: #93C5FD; // neonBlue[200]
+  background-color: #93C5FD; 
 }
 
 .absent-event .event-chip {
-  background-color: #CBD5E1; // stormGrey[200]
+  background-color: #CBD5E1; 
 }
 
-/* --------------------
-   Legend Styles
--------------------- */
+
+// Legend Styles
+
 .legend-chip {
   font-weight: 600 !important;
   padding: 6px 12px !important;
@@ -102,29 +99,6 @@
   background-color: #CBD5E1 !important;
   color: #1E293B !important;
 }
-// .meeting-event {
-//   background-color: purple !important;
-//   color: white !important;
-//   border-radius: 4px;
-// }
-/* --------------------
-   FullCalendar Tweaks (optional)
--------------------- */
-// .fc .fc-daygrid-day-number {
-//   font-weight: 600;
-//   margin-right: 4px;
-// }
-
-// .fc-daygrid-event {
-//   margin: 2px 0 !important;
-// }
-
-/* Header title (month/week/day name) */
-// .fc .fc-toolbar-title {
-//   color: #2DD4BF;     
-//   font-weight: bold;  
-//   font-size: 1.5rem;    
-// }
 
 /* Day numbers (top-left of each day cell) */
 .fc .fc-daygrid-day-number {

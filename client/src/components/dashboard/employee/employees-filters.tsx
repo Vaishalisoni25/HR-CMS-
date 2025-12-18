@@ -5,18 +5,18 @@ import InputAdornment from '@mui/material/InputAdornment';
 import OutlinedInput from '@mui/material/OutlinedInput';
 import { MagnifyingGlassIcon } from '@phosphor-icons/react/dist/ssr/MagnifyingGlass';
 
-interface CustomersFiltersProps {
+interface EmployeesFiltersProps {
   value: string;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
-export function CustomersFilters(): React.JSX.Element {
+export function EmployeesFilters({value, onChange}): React.JSX.Element {
   return (
     <Card sx={{ p: 2 }}>
       <OutlinedInput
         // defaultValue=""
-        // value={value}
-        // onChange={onChange}
+        value={value}
+        onChange={onChange}
         fullWidth
         placeholder="Search Employees"
         startAdornment={

@@ -115,10 +115,6 @@ export function AccountDetailsForm(): React.JSX.Element {
         <CardActions sx={{ justifyContent: 'flex-end' }}>
           <Button variant="contained">Save details</Button>
         </CardActions>
-        <CustomTextField
-  label="Email"
-  // helperTextMessage="We will never share your email." 
-/>
   </Card>
     </form>
   );

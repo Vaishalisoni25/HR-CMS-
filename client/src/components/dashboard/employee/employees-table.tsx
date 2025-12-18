@@ -15,16 +15,41 @@ import TablePagination from '@mui/material/TablePagination';
 import TableRow from '@mui/material/TableRow';
 import Typography from '@mui/material/Typography';
 import dayjs from 'dayjs';
-
 import { useSelection } from '@/hooks/use-selection';
+import { Button} from '@mui/material';
 
-function noop() {
-  // do nothing
+export interface Employee {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  jobTitle: string;
+  employmentType: string;
+  status: 'Active' | 'On Leave' | 'Inactive';
+  joiningDate: Date;
+  avatar?: string;
 }
 
-export function CustomersTable({ count = 0, rows = [], page = 0, rowsPerPage = 0 }) {
+interface EmployeesTableProps {
+  count: number;
+  rows: Employee[];
+  page: number;
+  rowsPerPage: number;
+  onPageChange: (
+    event: React.MouseEvent<HTMLButtonElement> | null,
+    page: number
+  ) => void;
+}
+
+export function EmployeesTable({ 
+  count = 0, 
+  rows = [], 
+  page = 0, 
+  rowsPerPage = 0,
+  onPageChange, 
+}: EmployeesTableProps) {
   const rowIds = React.useMemo(() => {
-    return rows.map((customer) => customer.id);
+    return rows.map((employee) => employee.id);
   }, [rows]);
 
   const { selectAll, deselectAll, selectOne, deselectOne, selected } = useSelection(rowIds);
@@ -58,6 +83,7 @@ export function CustomersTable({ count = 0, rows = [], page = 0, rowsPerPage = 0
               <TableCell>Employment Type</TableCell>
               <TableCell>Status</TableCell>
               <TableCell>Joining Date</TableCell>
+              <TableCell>Actions</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -105,6 +131,26 @@ export function CustomersTable({ count = 0, rows = [], page = 0, rowsPerPage = 0
                     </Typography>
                   </TableCell>
                   <TableCell>{dayjs(row.joiningDate).format('MMM D, YYYY')}</TableCell>
+        <TableCell>
+          <Stack direction="row" spacing={1}>
+            <Button
+              variant="contained"
+              color="primary"
+              size="small"
+              onClick={() => console.log('Edit', row.id)}
+            >
+              Edit
+            </Button>
+            <Button
+              variant="contained"
+              color="error"
+              size="small"
+              onClick={() => console.log('Delete', row.id)}
+            >
+              Delete
+            </Button>
+          </Stack>
+        </TableCell>
                 </TableRow>
               );
             })}
@@ -115,8 +161,8 @@ export function CustomersTable({ count = 0, rows = [], page = 0, rowsPerPage = 0
       <TablePagination
         component="div"
         count={count}
-        onPageChange={noop}
-        onRowsPerPageChange={noop}
+        onPageChange={onPageChange}
+        // onRowsPerPageChange={noop}
         page={page}
         rowsPerPage={rowsPerPage}
         rowsPerPageOptions={[5, 10, 25]}
