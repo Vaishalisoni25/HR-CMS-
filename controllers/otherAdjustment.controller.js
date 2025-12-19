@@ -4,7 +4,8 @@ import { validationMonthYear } from "../utils/date.js";
 
 export async function createAdjustment(req, res, next) {
   try {
-    const { employeeId, month, year, amount, type } = req.body;
+    const { employeeId, month, year, amount, type, description, image } =
+      req.body;
 
     if (!employeeId) {
       return res.status(400).json({ message: "Employee Id is required" });
