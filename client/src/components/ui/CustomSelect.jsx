@@ -24,6 +24,8 @@ const CustomSelect = ({
   return (
     <StyledSelect
       select
+      fullWidth
+       InputLabelProps={{ shrink: true }}
       label={label}
       error={!!errorMessage}
       helperText={
@@ -35,7 +37,7 @@ const CustomSelect = ({
       {...props}
     >
       {options.map((option) => (
-        <MenuItem key={option.value} value={option.value}>
+        <MenuItem key={option.value} value={option.value} disabled={option.disabled || false}>
           {option.label}
         </MenuItem>
       ))}

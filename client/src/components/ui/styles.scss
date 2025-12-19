@@ -67,39 +67,6 @@
   background-color: #CBD5E1; 
 }
 
-
-// Legend Styles
-
-.legend-chip {
-  font-weight: 600 !important;
-  padding: 6px 12px !important;
-  // border-radius: 6px !important;
-}
-
-/* Present */
-.legend-chip.present {
-  background-color: #2DD4BF !important;
-  color: #0F766E !important;
-}
-
-/* Holiday */
-.legend-chip.holiday {
-  background-color: #FCA5A5 !important;
-  color: #7F1D1D !important;
-}
-
-/* WFH */
-.legend-chip.wfh {
-  background-color: #93C5FD !important;
-  color: #1E3A8A !important;
-}
-
-/* Absent */
-.legend-chip.absent {
-  background-color: #CBD5E1 !important;
-  color: #1E293B !important;
-}
-
 /* Day numbers (top-left of each day cell) */
 .fc .fc-daygrid-day-number {
   color: #0F172A;      
@@ -121,6 +88,44 @@
   color: #0F172A;            
   font-weight: bold;           
   border-bottom: 2px solid #D1D5DB; 
+}
+
+/* Dialog Paper */
+.my-dialog .MuiPaper-root {
+  border-radius: 16px;
+  padding: 24px;
+  max-width: 800px;
+  width: 100%;
+}
+
+/* Dialog Title */
+// .my-dialog-title {
+//   font-size: 1.5rem;
+//   font-weight: 700;
+//   text-align: center;
+//   padding-bottom: 16px;
+// }
+
+/* Dialog Content */
+.my-dialog-content {
+  padding-top: 16px;
+}
+
+/* Form grid for side-by-side fields */
+.form-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.form-grid > .MuiGrid-item {
+  flex: 1 1 45%; /* each field ~45% width */
+}
+
+/* Dialog Actions */
+.my-dialog-actions {
+  justify-content: flex-end;
+  padding-top: 16px;
 }
 
 

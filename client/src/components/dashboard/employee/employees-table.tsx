@@ -16,7 +16,9 @@ import TableRow from '@mui/material/TableRow';
 import Typography from '@mui/material/Typography';
 import dayjs from 'dayjs';
 import { useSelection } from '@/hooks/use-selection';
-import { Button} from '@mui/material';
+import { IconButton } from '@mui/material';
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
 
 export interface Employee {
   id: string;
@@ -41,12 +43,12 @@ interface EmployeesTableProps {
   ) => void;
 }
 
-export function EmployeesTable({ 
-  count = 0, 
-  rows = [], 
-  page = 0, 
+export function EmployeesTable({
+  count = 0,
+  rows = [],
+  page = 0,
   rowsPerPage = 0,
-  onPageChange, 
+  onPageChange,
 }: EmployeesTableProps) {
   const rowIds = React.useMemo(() => {
     return rows.map((employee) => employee.id);
@@ -122,8 +124,8 @@ export function EmployeesTable({
                           row.status === 'Active'
                             ? 'var(--mui-palette-success-main)'
                             : row.status === 'On Leave'
-                            ? 'var(--mui-palette-warning-main)'
-                            : 'var(--mui-palette-error-main)',
+                              ? 'var(--mui-palette-warning-main)'
+                              : 'var(--mui-palette-error-main)',
                         fontWeight: 600,
                       }}
                     >
@@ -131,26 +133,24 @@ export function EmployeesTable({
                     </Typography>
                   </TableCell>
                   <TableCell>{dayjs(row.joiningDate).format('MMM D, YYYY')}</TableCell>
-        <TableCell>
-          <Stack direction="row" spacing={1}>
-            <Button
-              variant="contained"
-              color="primary"
-              size="small"
-              onClick={() => console.log('Edit', row.id)}
-            >
-              Edit
-            </Button>
-            <Button
-              variant="contained"
-              color="error"
-              size="small"
-              onClick={() => console.log('Delete', row.id)}
-            >
-              Delete
-            </Button>
-          </Stack>
-        </TableCell>
+                  <TableCell>
+                    <Stack direction="row" spacing={1}>
+                      <IconButton
+                        color="primary"
+                        size="small"
+                        onClick={() => console.log('Edit', row.id)}
+                      >
+                        <EditIcon />
+                      </IconButton>
+                      <IconButton
+                        color="error"
+                        size="small"
+                        onClick={() => console.log('Delete', row.id)}
+                      >
+                        <DeleteIcon />
+                      </IconButton>
+                    </Stack>
+                  </TableCell>
                 </TableRow>
               );
             })}
