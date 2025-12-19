@@ -7,12 +7,12 @@ import {
   DialogActions,
   Button,
   Box,
+  Typography,
+  Grid,
 } from "@mui/material";
+import styles from "./styles.scss";
+import PersonAddIcon from '@mui/icons-material/PersonAdd';
 
-/**
- * A reusable Form Modal component
- * Wraps any form content and provides submit/cancel buttons
- */
 const FormModal = ({
   open,
   title = "Form",
@@ -28,15 +28,34 @@ const FormModal = ({
   };
 
   return (
-    <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
-      <DialogTitle>{title}</DialogTitle>
-      <form onSubmit={handleSubmit}>
-        <DialogContent>
-          <Box display="flex" flexDirection="column" gap={2}>
-            {children}
+    <Dialog open={open} onClose={onClose} fullWidth maxWidth="md" className="my-dialog">
+      {/* <DialogTitle className="my-dialog-title">
+        <Typography        
+          fontWeight={600}  
+          textAlign="center"  
+        > {title} 
+        </Typography>
+        </DialogTitle> */}
+      <DialogTitle className="my-dialog-title">
+        <Box textAlign="center" display="flex" flexDirection="column" alignItems="center" gap={1}>
+          <Box display="flex" alignItems="center" gap={1}>
+            <PersonAddIcon color="primary" />
+            <Typography fontWeight={700} fontSize="1.75rem">
+              Add Employee
+            </Typography>
           </Box>
+          <Typography fontSize="0.875rem" color="text.secondary">
+            Fill out the form to add a new employee
+          </Typography>
+        </Box>
+      </DialogTitle>
+      <form onSubmit={handleSubmit}>
+        <DialogContent className="my-dialog-content">
+          <Grid container spacing={2} className="form-grid">
+            {children}
+          </Grid>
         </DialogContent>
-        <DialogActions>
+        <DialogActions className="my-dialog-actions">
           <Button onClick={onClose}>{cancelText}</Button>
           <Button type="submit" variant="contained" color="primary">
             {submitText}

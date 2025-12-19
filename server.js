@@ -11,6 +11,7 @@ import employeeRoute from "./routes/employee.route.js";
 import salaryRoute from "./routes/salary.route.js";
 import settingsRoute from "./routes/settings.route.js";
 import reportRoute from "./routes/report.route.js";
+import cors from 'cors';
 
 dotenv.config();
 const app = express();
@@ -18,6 +19,11 @@ const app = express();
 connectDB();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+app.use(cors({
+  origin: "http://localhost:3000", // frontend URL
+  credentials: true,
+}));
 
 app.use(express.json());
 
@@ -43,7 +49,7 @@ if (process.env.NODE_ENV === "production") {
 app.use((err, _req, res, _next) => {
   console.error(err);
   if (err.name === "ZodError") {
-    returnres.status(400).json({
+    return res.status(400).json({
       success: false,
       message: "Validation failed",
       errors: err.errors,
