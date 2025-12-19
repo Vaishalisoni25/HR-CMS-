@@ -11,7 +11,7 @@ const router = Router();
 
 router.post("/:id", auth([ROLES.SUPERADMIN, ROLES.HR]), generateSalary);
 router.get("/:id", auth(), getSalaryById);
-router.get("/", auth(ROLES.HR, ROLES.SUPERADMIN), getAllSalary);
+router.get("/", auth([ROLES.HR, ROLES.SUPERADMIN]), getAllSalary);
 
 // router.put("/update/:id", auth([ROLES.SUPERADMIN, ROLES.HR]), updateSalary);
 

@@ -7,7 +7,7 @@ import {
   createAdjustment,
   deleteAdjustmentById,
   getAdjustmentById,
-  getAllAjustment,
+  getAllAdjustment,
   updateAdjustmentById,
 } from "../controllers/otherAdjustment.controller.js";
 validate;
@@ -19,7 +19,7 @@ router.post(
   validate(AdjustmentSchema),
   createAdjustment
 );
-router.get("/", auth([ROLES.HR, ROLES.SUPERADMIN]), getAllAjustment);
+router.get("/", auth([ROLES.HR, ROLES.SUPERADMIN]), getAllAdjustment);
 router.get("/:id", auth([ROLES.HR, ROLES.SUPERADMIN]), getAdjustmentById);
 router.patch("/:id", auth([ROLES.HR, ROLES.SUPERADMIN]), updateAdjustmentById);
 router.delete("/:id", auth([ROLES.HR, ROLES.SUPERADMIN]), deleteAdjustmentById);

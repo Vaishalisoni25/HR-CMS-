@@ -28,17 +28,7 @@ export async function createEmployee(req, res, next) {
     const loginPassword = generateCode();
     const password = await bcrypt.hash(loginPassword, 10);
 
-    const employee = await Employee.create({
-      name,
-      email,
-      password,
-      phone,
-      joiningDate,
-      position,
-      companyCode,
-      employmentType,
-      basicSalary,
-    });
+    const employee = await Employee.create(req.body);
     const formattedDate = formatFullDate(new Date());
     //send code to employee
 

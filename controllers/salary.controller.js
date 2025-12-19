@@ -11,8 +11,8 @@ import {
 import { sendEmail } from "../services/email.service.js";
 import { formatFullDate, validationMonthYear } from "../utils/date.js";
 import { salaryEmailTemplate } from "../utils/emailTemplates.js";
-import Salary_Structure from "../models/salaryStructure.model.js";
-import Other_Adjustment from "../models/otherAdjustment.model.js";
+import SalaryStructure from "../models/salaryStructure.model.js";
+import OtherAdjustment from "../models/otherAdjustment.model.js";
 
 export async function generateSalary(req, res) {
   try {
@@ -20,21 +20,22 @@ export async function generateSalary(req, res) {
     if (!employeeId) {
       return res.status(400).json({ message: "Employee id is required" });
     }
-    const { month, year, overtime = 0, bonus = 0, otherAdjustment } = req.body;
 
+    const { month, year, overtime = 0, bonus = 0 } = req.body;
     const employee = await Employee.findById(employeeId);
-
     if (!employee) return res.status(404).json({ msg: "Employee not found" });
 
-    const result = validationMonthYear(month, year);
+    // ----- validate month and year --------
 
-    if (result.error) {
-      return res.status(400).json({ message: result.error });
+    const validation = validationMonthYear(month, year);
+
+    if (validation.error) {
+      return res.status(400).json({ message: validation.error });
     }
 
-    const { m, y, startDate, endDate } = result;
+    const { m, y, startDate, endDate } = validation;
 
-    const salaryStructure = await Salary_Structure.findOne({
+    const salaryStructure = await SalaryStructure.findOne({
       employeeId,
       status: SALARY_STRUCTURE_STATUS.ACTIVE,
     });
@@ -50,13 +51,13 @@ export async function generateSalary(req, res) {
 
     // ---------Other Adjustment --------
 
-    const adjustments = await Other_Adjustment.find({
+    const adjustment = await OtherAdjustment.find({
       employeeId,
       month: m,
       year: y,
     });
 
-    const totalAdjustment = adjustments.reduce((sum, adj) => {
+    const totalAdjustment = adjustment.reduce((sum, adj) => {
       return adj.type === "ADD" ? sum + adj.amount : sum - adj.amount;
     }, 0);
 
@@ -89,12 +90,13 @@ export async function generateSalary(req, res) {
     const lwpDeduction = (leaveCount - paidLeaveCount) * perDaySalary;
 
     //---------Earnings--------------
+    const leaveEncashment = paidLeaveCount * perDaySalary;
 
     const earnings = {
       [SALARY_COMPONENT.BASIC_SALARY]: basicSalary,
       [SALARY_COMPONENT.OVERTIME]: overtime,
       [SALARY_COMPONENT.BONUS]: bonus,
-      [SALARY_COMPONENT.LEAVE_ENCASHMENT]: paidLeaveCount * perDaySalary,
+      [SALARY_COMPONENT.LEAVE_ENCASHMENT]: leaveEncashment,
       [SALARY_COMPONENT.OTHER_ADJUSTMENTS]: totalAdjustment,
     };
     const round = (n) => Math.round(n * 100) / 100;
@@ -139,17 +141,16 @@ export async function generateSalary(req, res) {
       deductions[SALARY_COMPONENT.LWP_DEDUCTION];
 
     const netSalary = round(totalEarning - totalDeduction);
-
-    const existingSalary = await Salary.findOne({
-      employeeId,
-      month: m,
-      year: y,
-    });
-    if (existingSalary) {
-      return res
-        .status(400)
-        .json({ message: "Salary already generated for this month" });
-    }
+    // const existingSalary = await Salary.findOne({
+    //   employeeId,
+    //   month: m,
+    //   year: y,
+    // });
+    // if (existingSalary) {
+    //   return res
+    //     .status(400)
+    //     .json({ message: "Salary already generated for this month" });
+    // }
 
     const salary = await Salary.create({
       employeeId,
@@ -198,13 +199,13 @@ export async function getSalaryById(req, res) {
     if (!employeeId) {
       return res.status(400).json({ message: "Employee Id is required" });
     }
-    const result = validationMonthYear(month, year);
+    const validation = validationMonthYear(month, year);
 
-    if (result.error) {
-      return res.status(400).json({ message: result.error });
+    if (validation.error) {
+      return res.status(400).json({ message: validation.error });
     }
 
-    const { m, y } = result;
+    const { m, y } = validation;
 
     // ----- Find salary -----
     const salary = await Salary.findOne({
@@ -233,13 +234,13 @@ export async function getAllSalary(req, res, next) {
     if (!month || !year) {
       return res.status(400).json({ message: "Month and Year are required" });
     }
-    const result = validationMonthYear(month, year);
+    const validation = validationMonthYear(month, year);
 
-    if (result.error) {
-      return res.status(400).json({ message: result.error });
+    if (validation.error) {
+      return res.status(400).json({ message: validation.error });
     }
 
-    const { m, y } = result;
+    const { m, y } = validation;
     const salary = await Salary.find({
       month: m,
       year: y,

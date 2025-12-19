@@ -1,40 +1,39 @@
-import Other_Adjustment from "../models/otherAdjustment.model.js";
+import OtherAdjustment from "../models/otherAdjustment.model.js";
 import Employee from "../models/employee.model.js";
 import { validationMonthYear } from "../utils/date.js";
-import { success } from "zod";
 
 export async function createAdjustment(req, res, next) {
   try {
-    const { employeeId, month, year, amount, type, description, image } =
-      req.body;
+    const { employeeId, month, year, amount, type } = req.body;
 
     if (!employeeId) {
-      return res.status(404).json({ message: "Employee Id is required" });
+      return res.status(400).json({ message: "Employee Id is required" });
     }
 
-    const employee = await Employee.findById(employeeId);
-
-    if (!employee) {
-      return res.status(404).json({ message: "Employee not found" });
-    }
     if (!month || !year) {
       return res.status(400).json({ message: "Month and Year are required" });
     }
+
+    if (!amount || amount <= 0) {
+      return res.status(400).json({ message: "Valid amount is required" });
+    }
+
+    if (!["ADD", "LESS"].includes(type)) {
+      return res.status(400).json({ message: "Type must be ADD or LESS" });
+    }
+
+    const employee = await Employee.findById(employeeId);
+    if (!employee) {
+      return res.status(404).json({ message: "Employee not found" });
+    }
+
     const result = validationMonthYear(month, year);
 
     if (result.error) {
       return res.status(400).json({ message: result.error });
     }
 
-    const otherAdjustment = await Other_Adjustment.create({
-      employeeId,
-      month,
-      year,
-      amount,
-      type,
-      description,
-      image,
-    });
+    const otherAdjustment = await OtherAdjustment.create(req.body);
     res.status(201).json({
       success: true,
       message: "Other Adjustment Created Successfully.",
@@ -45,16 +44,16 @@ export async function createAdjustment(req, res, next) {
   }
 }
 
-export async function getAllAjustment(_req, res, next) {
+export async function getAllAdjustment(_req, res, next) {
   try {
-    const adjustments = await Other_Adjustment.find().lean();
-    if (!adjustments) {
+    const adjustment = await OtherAdjustment.find().lean();
+    if (!adjustment.length === 0) {
       return res.status(404).json({ message: "Adjustment not found" });
     }
     res.status(200).json({
       success: true,
       message: "Ajustment fetched successfully",
-      data: adjustments,
+      data: adjustment,
     });
   } catch (err) {
     next(err);
@@ -68,15 +67,15 @@ export async function getAdjustmentById(req, res, next) {
       return res.status(404).json({ message: "Employee Id required" });
     }
 
-    const adjustments = await Other_Adjustment.find({ employeeId });
-    console.log(adjustments);
-    if (!adjustments) {
+    const adjustment = await OtherAdjustment.find({ employeeId });
+
+    if (!adjustment.length === 0) {
       return res.status(404).json({ message: "Other Adjustment not found" });
     }
     res.status(200).json({
       success: true,
       message: "Other Adjustment fetched successfully",
-      data: adjustments,
+      data: adjustment,
     });
   } catch (err) {
     next(err);
@@ -88,20 +87,20 @@ export async function updateAdjustmentById(req, res, next) {
     if (!adjustmentId) {
       return res.status(400).json({ message: "Adjustment Id is required" });
     }
-    const adjustments = await Other_Adjustment.findByIdAndUpdate(
+    const adjustment = await OtherAdjustment.findByIdAndUpdate(
       adjustmentId,
       req.body,
       {
         new: true,
       }
     );
-    if (!adjustments) {
+    if (!adjustment) {
       return res.status(404).json({ message: "Adjustment not found" });
     }
     res.status(200).json({
       success: true,
       message: "Adjustments Updated Successfully",
-      data: adjustments,
+      data: adjustment,
     });
   } catch (err) {
     next(err);
@@ -114,20 +113,14 @@ export async function deleteAdjustmentById(req, res, next) {
     if (!adjustmentId) {
       return res.status(400).json({ message: "Adjustment Id is required" });
     }
-    const adjustments = await Other_Adjustment.findByIdAndDelete(
-      adjustmentId,
-      req.body,
-      {
-        new: true,
-      }
-    );
-    if (!adjustments) {
+    const adjustment = await OtherAdjustment.findByIdAndDelete(adjustmentId);
+    if (!adjustment) {
       return res.status(404).json({ message: "Adjustment not found" });
     }
     res.status(200).json({
       success: true,
-      message: "Adjestments deleted successfully",
-      data: adjustments,
+      message: "Adjustments deleted successfully",
+      data: adjustment,
     });
   } catch (err) {
     next(err);

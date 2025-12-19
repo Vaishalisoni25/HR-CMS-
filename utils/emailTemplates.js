@@ -1,3 +1,4 @@
+import { SALARY_COMPONENT } from "../config/constant.js";
 export const employeeEmailTemplate = {
   created: ({ name, date, email, loginPassword }) => `
        <h2>Welcome to Company</h2>
@@ -38,19 +39,27 @@ export const salaryEmailTemplate = {
 
     <h3 style="color:#444;">Earnings</h3>
     <ul>
-      <li><b>Basic Salary:</b> ₹${earnings.basic_salary}</li>
-      <li><b>Bonus:</b> ₹${earnings.bonus}</li>
-      <li><b>Overtime:</b> ₹${earnings.overtime}</li>
-      <li><b>Paid Leave Encashment:</b> ₹${earnings.leave_encashment}</li>
-      <li><b>Other Adjustments:</b> ₹${earnings.other_adjustment}</li>
+      <li><b>Basic Salary:</b> ₹${earnings[SALARY_COMPONENT.BASIC_SALARY]}</li>
+<li><b>Bonus:</b> ₹${earnings[SALARY_COMPONENT.BONUS]}</li>
+<li><b>Overtime:</b> ₹${earnings[SALARY_COMPONENT.OVERTIME]}</li>
+<li><b>Paid Leave Encashment:</b> ₹${
+    earnings[SALARY_COMPONENT.LEAVE_ENCASHMENT]
+  }</li>
+<li><b>Other Adjustments:</b> ₹${
+    earnings[SALARY_COMPONENT.OTHER_ADJUSTMENTS]
+  }</li>
+
     </ul>
 
     <h3 style="color:#444;">Deductions</h3>
     <ul>
-      <li><b>PF (12%):</b> ₹${deductions.pf}</li>
-       <li><b>Professional Tax:</b> ₹${deductions.professional_tax}</li>
-      <li><b>LWP Deduction:</b> ₹${deductions.lwp_deduction}</li>
-      <li><b>TDS:</b> ₹${deductions.tds}</li>
+     <li><b>PF:</b> ₹${deductions[SALARY_COMPONENT.PF]}</li>
+<li><b>Professional Tax:</b> ₹${
+    deductions[SALARY_COMPONENT.PROFESSIONAL_TAX]
+  }</li>
+<li><b>LWP Deduction:</b> ₹${deductions[SALARY_COMPONENT.LWP_DEDUCTION]}</li>
+<li><b>TDS:</b> ₹${deductions[SALARY_COMPONENT.TDS]}</li>
+
     </ul>
 
     <h2 style="color:green;">Net Salary: ₹${netSalary}</h2>
