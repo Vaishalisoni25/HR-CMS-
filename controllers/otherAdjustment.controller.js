@@ -1,13 +1,15 @@
 import OtherAdjustment from "../models/otherAdjustment.model.js";
 import Employee from "../models/employee.model.js";
 import { validationMonthYear } from "../utils/date.js";
+import mongoose from "mongoose";
 
 export async function createAdjustment(req, res, next) {
   try {
-    const { employeeId, month, year, amount, type, description } = req.body;
+    const { month, year, amount, type, description } = req.body;
+    const employeeId = req.params.id;
 
-    if (!employeeId) {
-      return res.status(400).json({ message: "Employee Id is required" });
+    if (!mongoose.Types.ObjectId.isValid(employeeId)) {
+      return res.status(400).json({ message: "Invalid Employee Id" });
     }
 
     if (!month || !year) {

@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { number } from "zod";
+
 const { Schema, model } = mongoose;
 
 const adjustmentSchema = new Schema({
@@ -17,7 +17,7 @@ const adjustmentSchema = new Schema({
   },
 
   amount: {
-    type: number,
+    type: Number,
     default: 0,
   },
 

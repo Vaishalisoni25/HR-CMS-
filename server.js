@@ -1,6 +1,7 @@
 // develop - 05 Dec 25 12:15
-import express, { json } from "express";
 import dotenv from "dotenv";
+dotenv.config();
+import express, { json } from "express";
 import connectDB from "./config/connectDB.js";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -14,11 +15,12 @@ import settingsRoute from "./routes/settings.route.js";
 import reportRoute from "./routes/report.route.js";
 import salaryStructureRoute from "./routes/salaryStructure.route.js";
 import adjustmentRoute from "./routes/otherAdjustment.route.js";
+import { setCloudinary } from "./config/cloudinary.js";
 
-dotenv.config();
 const app = express();
 
 connectDB();
+setCloudinary();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -52,6 +54,7 @@ if (process.env.NODE_ENV === "production") {
 
 // Global error handler
 app.use((err, _req, res, _next) => {
+  console.error(err.stack);
   console.error(err);
   if (err.name === "ZodError") {
     return res.status(400).json({
@@ -62,7 +65,7 @@ app.use((err, _req, res, _next) => {
   }
   res.status(err.status || 500).json({
     success: false,
-    message: err.message || "Server error",
+    message: err.message || "server error",
   });
 });
 
