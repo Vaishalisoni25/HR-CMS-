@@ -4,8 +4,7 @@ import { validationMonthYear } from "../utils/date.js";
 
 export async function createAdjustment(req, res, next) {
   try {
-    const { employeeId, month, year, amount, type, description, image } =
-      req.body;
+    const { employeeId, month, year, amount, type, description } = req.body;
 
     if (!employeeId) {
       return res.status(400).json({ message: "Employee Id is required" });
@@ -28,13 +27,23 @@ export async function createAdjustment(req, res, next) {
       return res.status(404).json({ message: "Employee not found" });
     }
 
+    const image = req.file ? req.file.path : null;
+
     const result = validationMonthYear(month, year);
 
     if (result.error) {
       return res.status(400).json({ message: result.error });
     }
 
-    const otherAdjustment = await OtherAdjustment.create(req.body);
+    const otherAdjustment = await OtherAdjustment.create({
+      employeeId,
+      month,
+      year,
+      amount,
+      type,
+      description,
+      image,
+    });
     res.status(201).json({
       success: true,
       message: "Other Adjustment Created Successfully.",

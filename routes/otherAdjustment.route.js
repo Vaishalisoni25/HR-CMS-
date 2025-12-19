@@ -11,11 +11,13 @@ import {
   updateAdjustmentById,
 } from "../controllers/otherAdjustment.controller.js";
 validate;
+import { upload } from "../middlewares/upload.middleware.js";
 const router = Router();
 
 router.post(
   "/:id",
   auth([ROLES.HR, ROLES.SUPERADMIN]),
+  upload.single("image"),
   validate(AdjustmentSchema),
   createAdjustment
 );
