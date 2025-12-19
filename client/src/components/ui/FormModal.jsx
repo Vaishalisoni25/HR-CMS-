@@ -9,10 +9,6 @@ import {
   Box,
 } from "@mui/material";
 
-/**
- * A reusable Form Modal component
- * Wraps any form content and provides submit/cancel buttons
- */
 const FormModal = ({
   open,
   title = "Form",

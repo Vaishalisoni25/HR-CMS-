@@ -33,7 +33,9 @@
     "@mui/utils": "7.1.1",
     "@mui/x-date-pickers": "8.5.1",
     "@phosphor-icons/react": "2.1.10",
+    "@reduxjs/toolkit": "^2.11.2",
     "apexcharts": "4.7.0",
+    "axios": "^1.13.2",
     "date-fns": "^4.1.0",
     "dayjs": "1.11.13",
     "next": "15.3.3",
@@ -41,6 +43,7 @@
     "react-apexcharts": "1.7.0",
     "react-dom": "19.1.0",
     "react-hook-form": "7.57.0",
+    "react-redux": "^9.2.0",
     "sass": "^1.94.2",
     "zod": "3.25.57"
   },
