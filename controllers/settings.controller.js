@@ -6,7 +6,6 @@ import settingsModel from "../models/settings.model.js";
 export async function createSettingPortal(req, res, next) {
   try {
     const parsed = portalSettingsSchema.safeParse(req.body);
-    console.log(req.body);
 
     if (!parsed.success) {
       console.log(parsed.error.errors);

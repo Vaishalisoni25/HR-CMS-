@@ -31,16 +31,12 @@ export async function createAdjustment(req, res, next) {
 
     const image = req.file ? req.file.path : null;
 
-    const result = validationMonthYear(month, year);
-
-    if (result.error) {
-      return res.status(400).json({ message: result.error });
-    }
+    const { m, y } = validationMonthYear(month, year);
 
     const otherAdjustment = await OtherAdjustment.create({
       employeeId,
-      month,
-      year,
+      month: m,
+      year: y,
       amount,
       type,
       description,

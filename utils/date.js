@@ -20,15 +20,10 @@ export function validationMonthYear(month, year) {
   if (isNaN(m) || isNaN(y) || m < 1 || m > 12) {
     return { error: "Invalid month or year" };
   }
-
-  const startDate = new Date(y, m - 1, 1);
-  const endDate = new Date(y, m, 0, 23, 59, 59, 999);
-
   return {
     m,
     y,
-    startDate,
-    endDate,
+
     error: null,
   };
 }

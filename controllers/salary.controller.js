@@ -6,6 +6,7 @@ import {
   ATTENDANCE_STATUSES,
   SALARY_COMPONENT,
   SALARY_STATUS,
+  SALARY_STRUCTURE_COMPONENT,
   SALARY_STRUCTURE_STATUS,
 } from "../config/constant.js";
 import { sendEmail } from "../services/email.service.js";
@@ -44,6 +45,8 @@ export async function generateSalary(req, res) {
     }
 
     const basicSalary = salaryStructure.basicPay;
+    const hra = salaryStructure.HRA || 0;
+    const specialAllowance = salaryStructure.specialAllowance || 0;
 
     if (!basicSalary) {
       return res.status(404).json({ message: " Basic Salary not found" });
@@ -94,19 +97,23 @@ export async function generateSalary(req, res) {
 
     const earnings = {
       [SALARY_COMPONENT.BASIC_SALARY]: basicSalary,
+      [SALARY_STRUCTURE_COMPONENT.HRA]: hra,
+      [SALARY_STRUCTURE_COMPONENT.SPECIAL_ALLOWANCE]: specialAllowance,
       [SALARY_COMPONENT.OVERTIME]: overtime,
       [SALARY_COMPONENT.BONUS]: bonus,
       [SALARY_COMPONENT.LEAVE_ENCASHMENT]: leaveEncashment,
-      [SALARY_COMPONENT.OTHER_ADJUSTMENTS]: totalAdjustment,
+      [SALARY_COMPONENT.OTHER_ADJUSTMENT]: totalAdjustment,
     };
     const round = (n) => Math.round(n * 100) / 100;
     //-------Total Earnings-------
     const totalEarning =
       earnings[SALARY_COMPONENT.BASIC_SALARY] +
+      earnings[SALARY_STRUCTURE_COMPONENT.HRA] +
+      earnings[SALARY_STRUCTURE_COMPONENT.SPECIAL_ALLOWANCE] +
       earnings[SALARY_COMPONENT.OVERTIME] +
       earnings[SALARY_COMPONENT.BONUS] +
       earnings[SALARY_COMPONENT.LEAVE_ENCASHMENT] +
-      earnings[SALARY_COMPONENT.OTHER_ADJUSTMENTS];
+      earnings[SALARY_COMPONENT.OTHER_ADJUSTMENT];
     // -------- TDS (10%) ----------
     const tds = round(totalEarning * 0.1);
 
@@ -128,7 +135,7 @@ export async function generateSalary(req, res) {
     const deductions = {
       [SALARY_COMPONENT.TDS]: tds,
       [SALARY_COMPONENT.PROFESSIONAL_TAX]: professionalTax,
-      [SALARY_COMPONENT.PF]: basicSalary * 0.12,
+      [SALARY_COMPONENT.PF]: round(basicSalary * 0.12),
       [SALARY_COMPONENT.LWP_DEDUCTION]: lwpDeduction,
     };
 

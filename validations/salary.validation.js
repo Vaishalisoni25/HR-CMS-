@@ -12,7 +12,7 @@ export const salaryGenerateSchema = z.object({
   year: z.coerce.number().min(2000),
 
   earnings: z.object({
-    basic_salary: z.coerce.number().min(0),
+    basicSalary: z.coerce.number().min(0),
     overtime: z.coerce.number().min(0).optional(),
     bonus: z.coerce.number().min(0).optional(),
     leaveEncashment: z.coerce.number().min(0).optional(),

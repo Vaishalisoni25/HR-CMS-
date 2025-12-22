@@ -1,8 +1,6 @@
 import Employee from "../models/employee.model.js";
-import bcrypt from "bcrypt";
 import { ROLES } from "../config/constant.js";
 import { customError } from "../utils/customError.js";
-import { success } from "zod";
 import { generateCode } from "../utils/generateCode.js";
 import { sendEmail } from "../services/email.service.js";
 import { formatFullDate } from "../utils/date.js";
@@ -10,23 +8,13 @@ import { employeeEmailTemplate } from "../utils/emailTemplates.js";
 
 export async function createEmployee(req, res, next) {
   try {
-    const {
-      name,
-      email,
-      phone,
-      joiningDate,
-      position,
-      employmentType,
-      companyCode,
-      basicSalary,
-    } = req.body;
+    const { email } = req.body;
 
     const exists = await Employee.findOne({ email });
     if (exists) {
       return next(new customError("Email already exist", 400));
     }
     const loginPassword = generateCode();
-    const password = await bcrypt.hash(loginPassword, 10);
 
     const employee = await Employee.create(req.body);
     const formattedDate = formatFullDate(new Date());
