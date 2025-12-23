@@ -46,7 +46,7 @@ export const salaryEmailTemplate = {
     earnings[SALARY_COMPONENT.LEAVE_ENCASHMENT]
   }</li>
 <li><b>Other Adjustments:</b> ₹${
-    earnings[SALARY_COMPONENT.OTHER_ADJUSTMENTS]
+    earnings[SALARY_COMPONENT.OTHER_ADJUSTMENT]
   }</li>
 
     </ul>
