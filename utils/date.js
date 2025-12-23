@@ -18,7 +18,7 @@ export function validationMonthYear(month, year) {
   const y = Number(year);
 
   if (isNaN(m) || isNaN(y) || m < 1 || m > 12) {
-    return res.status(400).json({ message: "Invalid month or year" });
+    return { error: "Invalid month or year" };
   }
 
   const startDate = new Date(y, m - 1, 1);

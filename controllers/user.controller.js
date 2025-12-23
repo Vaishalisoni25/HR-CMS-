@@ -26,7 +26,7 @@ export async function register(req, res, next) {
 
     const existing = await User.findOne({ email });
     if (existing) {
-      return next(new customError(""));
+      return res.status(400).json({ message: "User already exists" });
     }
 
     const hashedPass = await hash(password, 10);
@@ -40,6 +40,7 @@ export async function register(req, res, next) {
 
     res.status(201).json({ token: createToken(user) });
   } catch (err) {
+    next(err);
     res.status(500).json({ message: err.message });
   }
 }

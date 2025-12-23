@@ -1,4 +1,5 @@
 import jwt from "jsonwebtoken";
+import { customError } from "../utils/customError.js";
 
 import { ROLES } from "../config/constant.js";
 
@@ -7,6 +8,7 @@ const { verify } = jwt;
 export default function authMiddleware(allowedRoles = []) {
   return function (req, res, next) {
     const token = req.headers["authorization"];
+
     if (!token) return res.status(401).json({ msg: "Token missing" });
 
     try {

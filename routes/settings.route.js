@@ -8,6 +8,6 @@ import { ROLES } from "../config/constant.js";
 const router = Router();
 
 router.post("/", auth([ROLES.HR, ROLES.SUPERADMIN]), createSettingPortal);
-router.get("/:id", auth([ROLES.HR, ROLES.SUPERADMIN]), getSettingPortal);
+router.get("/", auth([ROLES.HR, ROLES.SUPERADMIN]), getSettingPortal);
 
 export default router;

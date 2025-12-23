@@ -1,7 +1,7 @@
 import Employee from "../models/employee.model.js";
 import Attendance from "../models/attendance.model.js";
 import Salary from "../models/salary.model.js";
-import { validationMonthYear } from "../utils/validateMonthYear.js";
+import { validationMonthYear } from "../utils/date.js";
 
 export async function employeeReport(req, res, next) {
   try {
@@ -10,10 +10,7 @@ export async function employeeReport(req, res, next) {
     let newEmployeesThisMonth = 0;
 
     if (month && year) {
-      const { m, y, startDate, endDate, error } = validationMonthYear(
-        month,
-        year
-      );
+      const { startDate, endDate, error } = validationMonthYear(month, year);
 
       if (error) {
         return res.status(400).json({ success: false, message: error });
