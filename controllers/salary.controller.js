@@ -36,6 +36,12 @@ export async function generateSalary(req, res) {
 
     const { m, y, startDate, endDate } = validation;
 
+    if (!["PF", "TDS"].includes(employee.tax)) {
+      return res.status(400).json({
+        message: "Employee tax must be PF or TDS",
+      });
+    }
+
     const salaryStructure = await SalaryStructure.findOne({
       employeeId,
       status: SALARY_STRUCTURE_STATUS.ACTIVE,
@@ -61,13 +67,18 @@ export async function generateSalary(req, res) {
     });
 
     const totalAdjustment = adjustment.reduce((sum, adj) => {
-      return adj.type === "ADD" ? sum + adj.amount : sum - adj.amount;
+      if (adj.type === "ADD") return sum + adj.amount;
+      if (adj.type === "DEDUCT") return sum - adj.amount;
+      return sum;
     }, 0);
 
     //------------per day salry------------
 
     const dayInMonth = new Date(y, m, 0).getDate();
-    const perDaySalary = basicSalary / dayInMonth;
+
+    const grossMonthly = basicSalary + hra + specialAllowance;
+
+    const perDaySalary = grossMonthly / dayInMonth;
 
     // -----------Get Attendance of selected month --------
 
@@ -78,6 +89,12 @@ export async function generateSalary(req, res) {
         $lte: endDate,
       },
     });
+
+    if (!attendanceRecords.length === 0) {
+      return res.status(400).json({
+        message: "Attendance not found for selected month",
+      });
+    }
 
     const { leaveCount, paidLeaveCount } = attendanceRecords.reduce(
       (acc, record) => {
@@ -90,7 +107,8 @@ export async function generateSalary(req, res) {
       { leaveCount: 0, paidLeaveCount: 0 }
     );
 
-    const lwpDeduction = (leaveCount - paidLeaveCount) * perDaySalary;
+    const unpaidLeaves = Math.max(leaveCount - paidLeaveCount, 0);
+    const lwpDeduction = unpaidLeaves * perDaySalary;
 
     //---------Earnings--------------
     const leaveEncashment = paidLeaveCount * perDaySalary;
@@ -105,6 +123,10 @@ export async function generateSalary(req, res) {
       [SALARY_COMPONENT.OTHER_ADJUSTMENT]: totalAdjustment,
     };
     const round = (n) => Math.round(n * 100) / 100;
+
+    Object.keys(earnings).forEach(
+      (key) => (earnings[key] = round(earnings[key]))
+    );
     //-------Total Earnings-------
     const totalEarning =
       earnings[SALARY_COMPONENT.BASIC_SALARY] +
@@ -114,8 +136,6 @@ export async function generateSalary(req, res) {
       earnings[SALARY_COMPONENT.BONUS] +
       earnings[SALARY_COMPONENT.LEAVE_ENCASHMENT] +
       earnings[SALARY_COMPONENT.OTHER_ADJUSTMENT];
-    // -------- TDS (10%) ----------
-    const tds = round(totalEarning * 0.1);
 
     //-----PT------------------
 
@@ -132,12 +152,25 @@ export async function generateSalary(req, res) {
       professionalTax = m === 3 ? 212 : 208;
     }
 
+    let pf = 0;
+    let tds = 0;
+
+    if (employee.tax === "PF") {
+      pf = round(basicSalary * 0.12);
+    } else if (employee.tax === "TDS") {
+      tds = round(totalEarning * 0.1);
+    }
+
     const deductions = {
       [SALARY_COMPONENT.TDS]: tds,
       [SALARY_COMPONENT.PROFESSIONAL_TAX]: professionalTax,
-      [SALARY_COMPONENT.PF]: round(basicSalary * 0.12),
+      [SALARY_COMPONENT.PF]: pf,
       [SALARY_COMPONENT.LWP_DEDUCTION]: lwpDeduction,
     };
+
+    Object.keys(deductions).forEach(
+      (key) => (deductions[key] = round(deductions[key]))
+    );
 
     //---------- total deduction---------
 
@@ -148,6 +181,7 @@ export async function generateSalary(req, res) {
       deductions[SALARY_COMPONENT.LWP_DEDUCTION];
 
     const netSalary = round(totalEarning - totalDeduction);
+
     // const existingSalary = await Salary.findOne({
     //   employeeId,
     //   month: m,
@@ -196,6 +230,7 @@ export async function generateSalary(req, res) {
     });
   }
 }
+
 //get salary records
 
 export async function getSalaryById(req, res) {
