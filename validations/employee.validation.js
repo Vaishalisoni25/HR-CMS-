@@ -8,8 +8,9 @@ export const employeeSchema = z.object({
   employmentType: z.string().optional(),
   allowedLeaves: z.number().optional(),
   position: z.string().optional(),
-  companyCode: z.string().optional(),
+  employeeCode: z.string().optional(),
   basicSalary: z.number().optional(),
 
-  status: z.enum(["Active", "Inactive"]).optional(), // Need to ask
+  status: z.enum(["Active", "Inactive"]).optional(),
+  tax: z.enum(["PF", "TDS"]),
 });

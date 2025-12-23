@@ -6,10 +6,14 @@ import {
   ATTENDANCE_STATUSES,
   SALARY_COMPONENT,
   SALARY_STATUS,
+  SALARY_STRUCTURE_COMPONENT,
+  SALARY_STRUCTURE_STATUS,
 } from "../config/constant.js";
 import { sendEmail } from "../services/email.service.js";
 import { formatFullDate, validationMonthYear } from "../utils/date.js";
 import { salaryEmailTemplate } from "../utils/emailTemplates.js";
+import SalaryStructure from "../models/salaryStructure.model.js";
+import OtherAdjustment from "../models/otherAdjustment.model.js";
 
 export async function generateSalary(req, res) {
   try {
@@ -17,33 +21,67 @@ export async function generateSalary(req, res) {
     if (!employeeId) {
       return res.status(400).json({ message: "Employee id is required" });
     }
-    const {
-      month,
-      year,
-      overtime = 0,
-      bonus = 0,
-      otherAdjustment = 0,
-    } = req.body;
 
+    const { month, year, overtime = 0, bonus = 0 } = req.body;
     const employee = await Employee.findById(employeeId);
-
     if (!employee) return res.status(404).json({ msg: "Employee not found" });
 
-    const result = validationMonthYear(month, year);
+    // ----- validate month and year --------
 
-    if (result.error) {
-      return res.status(400).json({ message: result.error });
+    const validation = validationMonthYear(month, year);
+
+    if (validation.error) {
+      return res.status(400).json({ message: validation.error });
     }
 
-    const { m, y, startDate, endDate, error } = result;
+    const { m, y, startDate, endDate } = validation;
 
-    const basicSalary = employee.basicSalary;
+    if (!["PF", "TDS"].includes(employee.tax)) {
+      return res.status(400).json({
+        message: "Employee tax must be PF or TDS",
+      });
+    }
 
-    //per day salry
+    const salaryStructure = await SalaryStructure.findOne({
+      employeeId,
+      status: SALARY_STRUCTURE_STATUS.ACTIVE,
+    });
+    if (!salaryStructure) {
+      return res.status(400).json({ message: "Salary Structure not found" });
+    }
+
+    const basicSalary = salaryStructure.basicPay;
+    const hra = salaryStructure.HRA || 0;
+    const specialAllowance = salaryStructure.specialAllowance || 0;
+
+    if (!basicSalary) {
+      return res.status(404).json({ message: " Basic Salary not found" });
+    }
+
+    // ---------Other Adjustment --------
+
+    const adjustment = await OtherAdjustment.find({
+      employeeId,
+      month: m,
+      year: y,
+    });
+
+    const totalAdjustment = adjustment.reduce((sum, adj) => {
+      if (adj.type === "ADD") return sum + adj.amount;
+      if (adj.type === "DEDUCT") return sum - adj.amount;
+      return sum;
+    }, 0);
+
+    //------------per day salry------------
+
     const dayInMonth = new Date(y, m, 0).getDate();
-    const perDaySalary = basicSalary / dayInMonth;
 
-    // Get Attendance of selected month
+    const grossMonthly = basicSalary + hra + specialAllowance;
+
+    const perDaySalary = grossMonthly / dayInMonth;
+
+    // -----------Get Attendance of selected month --------
+
     const attendanceRecords = await Attendance.find({
       employeeId: new mongoose.Types.ObjectId(employeeId),
       date: {
@@ -51,6 +89,12 @@ export async function generateSalary(req, res) {
         $lte: endDate,
       },
     });
+
+    if (!attendanceRecords.length === 0) {
+      return res.status(400).json({
+        message: "Attendance not found for selected month",
+      });
+    }
 
     const { leaveCount, paidLeaveCount } = attendanceRecords.reduce(
       (acc, record) => {
@@ -63,36 +107,91 @@ export async function generateSalary(req, res) {
       { leaveCount: 0, paidLeaveCount: 0 }
     );
 
-    const lwpDeduction = (leaveCount - paidLeaveCount) * perDaySalary;
+    const unpaidLeaves = Math.max(leaveCount - paidLeaveCount, 0);
+    const lwpDeduction = unpaidLeaves * perDaySalary;
+
+    //---------Earnings--------------
+    const leaveEncashment = paidLeaveCount * perDaySalary;
 
     const earnings = {
       [SALARY_COMPONENT.BASIC_SALARY]: basicSalary,
+      [SALARY_STRUCTURE_COMPONENT.HRA]: hra,
+      [SALARY_STRUCTURE_COMPONENT.SPECIAL_ALLOWANCE]: specialAllowance,
       [SALARY_COMPONENT.OVERTIME]: overtime,
       [SALARY_COMPONENT.BONUS]: bonus,
-      leaveEncashment: paidLeaveCount * perDaySalary,
-      otherAdjustment,
+      [SALARY_COMPONENT.LEAVE_ENCASHMENT]: leaveEncashment,
+      [SALARY_COMPONENT.OTHER_ADJUSTMENT]: totalAdjustment,
     };
+    const round = (n) => Math.round(n * 100) / 100;
+
+    Object.keys(earnings).forEach(
+      (key) => (earnings[key] = round(earnings[key]))
+    );
+    //-------Total Earnings-------
+    const totalEarning =
+      earnings[SALARY_COMPONENT.BASIC_SALARY] +
+      earnings[SALARY_STRUCTURE_COMPONENT.HRA] +
+      earnings[SALARY_STRUCTURE_COMPONENT.SPECIAL_ALLOWANCE] +
+      earnings[SALARY_COMPONENT.OVERTIME] +
+      earnings[SALARY_COMPONENT.BONUS] +
+      earnings[SALARY_COMPONENT.LEAVE_ENCASHMENT] +
+      earnings[SALARY_COMPONENT.OTHER_ADJUSTMENT];
+
+    //-----PT------------------
+
+    let professionalTax = 0;
+
+    if (totalEarning <= 18750) {
+      professionalTax = 0;
+    } else if (totalEarning <= 25000) {
+      professionalTax = 125;
+    } else if (totalEarning <= 33333) {
+      professionalTax = 167;
+    } else {
+      // Professional Tax: ₹208 for 11 months, ₹212 in March (last month of FY)
+      professionalTax = m === 3 ? 212 : 208;
+    }
+
+    let pf = 0;
+    let tds = 0;
+
+    if (employee.tax === "PF") {
+      pf = round(basicSalary * 0.12);
+    } else if (employee.tax === "TDS") {
+      tds = round(totalEarning * 0.1);
+    }
 
     const deductions = {
-      [SALARY_COMPONENT.TDS]: 0,
-      [SALARY_COMPONENT.PF]: basicSalary * 0.12,
+      [SALARY_COMPONENT.TDS]: tds,
+      [SALARY_COMPONENT.PROFESSIONAL_TAX]: professionalTax,
+      [SALARY_COMPONENT.PF]: pf,
       [SALARY_COMPONENT.LWP_DEDUCTION]: lwpDeduction,
     };
 
-    const totalEarning =
-      earnings[SALARY_COMPONENT.BASIC_SALARY] +
-      earnings[SALARY_COMPONENT.OVERTIME] +
-      earnings[SALARY_COMPONENT.BONUS] +
-      earnings.leaveEncashment +
-      earnings.otherAdjustment;
+    Object.keys(deductions).forEach(
+      (key) => (deductions[key] = round(deductions[key]))
+    );
 
-    // total deduction
+    //---------- total deduction---------
+
     const totalDeduction =
       deductions[SALARY_COMPONENT.PF] +
       deductions[SALARY_COMPONENT.TDS] +
+      deductions[SALARY_COMPONENT.PROFESSIONAL_TAX] +
       deductions[SALARY_COMPONENT.LWP_DEDUCTION];
 
-    const netSalary = totalEarning - totalDeduction;
+    const netSalary = round(totalEarning - totalDeduction);
+
+    // const existingSalary = await Salary.findOne({
+    //   employeeId,
+    //   month: m,
+    //   year: y,
+    // });
+    // if (existingSalary) {
+    //   return res
+    //     .status(400)
+    //     .json({ message: "Salary already generated for this month" });
+    // }
 
     const salary = await Salary.create({
       employeeId,
@@ -118,6 +217,7 @@ export async function generateSalary(req, res) {
       }),
     });
     return res.status(201).json({
+      success: true,
       message: "Salary generated successfully",
       data: salary,
     });
@@ -130,9 +230,10 @@ export async function generateSalary(req, res) {
     });
   }
 }
+
 //get salary records
 
-export async function getSalary(req, res) {
+export async function getSalaryById(req, res) {
   try {
     const employeeId = req.params.id;
     const { month, year } = req.body;
@@ -140,13 +241,13 @@ export async function getSalary(req, res) {
     if (!employeeId) {
       return res.status(400).json({ message: "Employee Id is required" });
     }
-    const result = validationMonthYear(month, year);
+    const validation = validationMonthYear(month, year);
 
-    if (result.error) {
-      return res.status(400).json({ message: result.error });
+    if (validation.error) {
+      return res.status(400).json({ message: validation.error });
     }
 
-    const { m, y } = result;
+    const { m, y } = validation;
 
     // ----- Find salary -----
     const salary = await Salary.findOne({
@@ -166,5 +267,32 @@ export async function getSalary(req, res) {
   } catch (err) {
     console.error(err);
     return res.status(500).json({ msg: "Server Error", err });
+  }
+}
+export async function getAllSalary(req, res, next) {
+  try {
+    const { month, year } = req.query;
+
+    if (!month || !year) {
+      return res.status(400).json({ message: "Month and Year are required" });
+    }
+    const validation = validationMonthYear(month, year);
+
+    if (validation.error) {
+      return res.status(400).json({ message: validation.error });
+    }
+
+    const { m, y } = validation;
+    const salary = await Salary.find({
+      month: m,
+      year: y,
+    }).lean();
+    res.status(200).json({
+      success: true,
+      message: " All Salaries fetched successfully",
+      data: salary,
+    });
+  } catch (err) {
+    next(err);
   }
 }
