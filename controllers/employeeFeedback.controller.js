@@ -1,4 +1,4 @@
-import EmployeeFeedBack from "../models/EmployeeFeedback.model.js";
+import EmployeeFeedBack from "../models/employeeFeedback.model.js";
 import Employee from "../models/employee.model.js";
 import { ROLES, EMAIL_STATUS } from "../config/constant.js";
 import { employeeFeedbackTemplate } from "../utils/emailTemplates.js";
