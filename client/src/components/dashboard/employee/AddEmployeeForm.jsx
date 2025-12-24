@@ -17,7 +17,6 @@ import { useState } from 'react';
 import './employeeCss.scss';
 
 export default function AddEmployeeForm({ values, onChange, onDateChange, errors }) {
-    console.log('AddEmployeeForm values:', values);
     const [showPassword, setShowPassword] = useState(false);
     const handleClickShowPassword = () => setShowPassword((prev) => !prev);
     const handleMouseDownPassword = (event) => event.preventDefault();

@@ -4,7 +4,7 @@ import * as React from 'react';
 import { Provider } from 'react-redux';
 
 import '@/styles/global.css';
-import { store } from '../../store';
+import {store} from '@/redux/store';
 import { LocalizationProvider } from '@/components/core/localization-provider';
 import { ThemeProvider } from '@/components/core/theme-provider/theme-provider';
 import { AuthWrapper } from '@/components/auth/AuthWrapper';

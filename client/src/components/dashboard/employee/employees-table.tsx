@@ -19,8 +19,8 @@ import { useSelection } from '@/hooks/use-selection';
 import { IconButton } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
-import { capitalizeText, formatPhone, formatEmail, formatStatus, formatTitle, formatEnumText } from '@/utils/formatter';
-import { deleteEmployee } from '@/services/employeeService';
+import { capitalizeText, formatPhone, formatEmail, formatStatus, formatEnumText } from '@/utils/formatter';
+
 
 export interface Employee {
   id: string;
