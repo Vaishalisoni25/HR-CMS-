@@ -10,12 +10,20 @@ export const SalaryStructureSchema = z.object({
       "Invalid MongoDB ObjectId"
     ),
   month: z.coerce.number().min(1).max(12),
+
   year: z.coerce.number().min(2000),
+
   basicPay: z.coerce.number().min(0),
+
   HRA: z.coerce.number().min(0).optional(),
+
   specialAllowance: z.coerce.number().min(0).optional(),
+
   grossSalary: z.coerce.number().min(0).optional(),
+
   effectiveFrom: z.coerce.date().optional(),
+
   effectiveTo: z.coerce.date().optional(),
+
   status: z.enum(Object.values(SALARY_STRUCTURE_STATUS)).optional(),
 });

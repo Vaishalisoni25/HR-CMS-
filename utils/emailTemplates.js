@@ -46,7 +46,7 @@ export const salaryEmailTemplate = {
     earnings[SALARY_COMPONENT.LEAVE_ENCASHMENT]
   }</li>
 <li><b>Other Adjustments:</b> ₹${
-    earnings[SALARY_COMPONENT.OTHER_ADJUSTMENTS]
+    earnings[SALARY_COMPONENT.OTHER_ADJUSTMENT]
   }</li>
 
     </ul>
@@ -68,4 +68,30 @@ export const salaryEmailTemplate = {
     <p>Best Regards,<br><b>HR Team</b></p>
   </div>
   `,
+};
+
+export const employeeFeedbackTemplate = ({
+  name,
+  subject,
+  content,
+  rating,
+}) => {
+  return `
+    <div style="font-family: Arial, sans-serif">
+      <h2>Hello ${name},</h2>
+
+      <p>You have received feedback from HR.</p>
+
+      <h3>${subject}</h3>
+
+      <div style="padding:10px;border:1px solid #ddd">
+        ${content}
+      </div>
+
+      ${rating ? `<p><strong>Rating:</strong> ${rating}/5</p>` : ""}
+
+      <br/>
+      <p>Regards,<br/>HR Team</p>
+    </div>
+  `;
 };
