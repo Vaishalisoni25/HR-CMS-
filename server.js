@@ -17,6 +17,7 @@ import salaryStructureRoute from "./routes/salaryStructure.route.js";
 import adjustmentRoute from "./routes/otherAdjustment.route.js";
 import { setCloudinary } from "./config/cloudinary.js";
 import employeeSummary from "./routes/employeeSummary.route.js";
+import employeeFeedback from "./routes/employeeFeedback.route.js";
 
 const app = express();
 
@@ -38,6 +39,7 @@ app.use("/api/report", reportRoute);
 app.use("/api/salaryStructure", salaryStructureRoute);
 app.use("/api/adjustment", adjustmentRoute);
 app.use("/api/employeeSummary", employeeSummary);
+app.use("/api/employeeFeedback", employeeFeedback);
 if (process.env.NODE_ENV === "production") {
   const clientPath = path.join(__dirname, "client", "dist");
 

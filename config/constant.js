@@ -46,5 +46,16 @@ export const SALARY_STRUCTURE_STATUS = {
   ACTIVE: "active",
   EXPIRED: "expired",
 };
+//Employee feedback
 
-export const SETTING_COMPONENT = {};
+export const FEEDBACK_TYPES = {
+  FEEDBACK: "feedback",
+  CODE_REVIEW: "code-review",
+};
+//  email status for employee feedback
+
+export const EMAIL_STATUS = {
+  PENDING: "pending",
+  SENT: "sent",
+  FAILED: "failed",
+};
