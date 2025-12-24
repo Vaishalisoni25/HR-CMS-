@@ -1,4 +1,4 @@
-import EmployeeFeedBack from "../models/employeeFeedback.model.js";
+import EmployeeFeedBack from "../models/EmployeeFeedback.model.js";
 import Employee from "../models/employee.model.js";
 import { ROLES, EMAIL_STATUS } from "../config/constant.js";
 import { employeeFeedbackTemplate } from "../utils/emailTemplates.js";
@@ -17,6 +17,15 @@ export async function createEmployeeFeedback(req, res, next) {
     const employee = await Employee.findById(employeeId);
     if (!employee) {
       return res.status(404).json({ message: "Employee not found" });
+    }
+    const existingFeedback = await EmployeeFeedBack.findOne({
+      type,
+      subject,
+    });
+    if (!existingFeedback) {
+      return res
+        .status(400)
+        .json({ message: "Feedback already exists for this employee" });
     }
 
     const feedback = await EmployeeFeedBack.create({
@@ -45,6 +54,19 @@ export async function createEmployeeFeedback(req, res, next) {
     res.status(201).json({
       success: true,
       message: "Feedback added & email sent",
+      data: feedback,
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function getAllEmployeesFeedback(_req, res, next) {
+  try {
+    const feedback = await EmployeeFeedBack.find().lean();
+    res.json({
+      success: true,
+      message: "All Employees Feedback fetched successfully",
       data: feedback,
     });
   } catch (err) {

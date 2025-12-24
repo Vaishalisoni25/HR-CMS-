@@ -3,7 +3,10 @@ import { FeedbackSchema } from "../validations/employeeFeedback.validation.js";
 import validate from "../middlewares/validate.middleware.js";
 import auth from "../middlewares/auth.middleware.js";
 import { ROLES } from "../config/constant.js";
-import { createEmployeeFeedback } from "../controllers/employeeFeedback.controller.js";
+import {
+  createEmployeeFeedback,
+  getAllEmployeesFeedback,
+} from "../controllers/employeeFeedback.controller.js";
 
 const router = Router();
 
@@ -13,5 +16,6 @@ router.post(
   validate(FeedbackSchema),
   createEmployeeFeedback
 );
+router.get("/", auth([ROLES.HR, ROLES.SUPERADMIN]), getAllEmployeesFeedback);
 
 export default router;

@@ -91,7 +91,7 @@ export const employeeFeedbackTemplate = ({
       ${rating ? `<p><strong>Rating:</strong> ${rating}/5</p>` : ""}
 
       <br/>
-      <p>Regards,<br/>HR Team</p>
+      <p>Best Regards,<br/>HR Team</p>
     </div>
   `;
 };
