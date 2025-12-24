@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   Box,
   Card,
@@ -18,12 +18,10 @@ import { useSelection } from '@/hooks/use-selection';
 
 const noop = () => {};
 
-export function CustomTable({ columns = [], rows = [], count = 0, page = 0, rowsPerPage = 5 }) {
-  // Get all row IDs for selection logic
+export function CustomTable({ columns = [], rows = []}) {
   const rowIds = useMemo(() => rows.map((row) => row.id), [rows]);
   const { selectAll, deselectAll, selectOne, deselectOne, selected } = useSelection(rowIds);
 
-  // Determine selection states
   const selectedCount = selected.size;
   const selectedAll = rows.length > 0 && selectedCount === rows.length;
   const selectedSome = selectedCount > 0 && selectedCount < rows.length;
@@ -36,12 +34,27 @@ export function CustomTable({ columns = [], rows = [], count = 0, page = 0, rows
     checked ? selectOne(id) : deselectOne(id);
   };
 
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
+
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+  };
+
+  const handleChangeRowsPerPage = (event) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0); 
+  };
+
+  const paginatedRows = useMemo(() => {
+    const start = page * rowsPerPage;
+    return rows.slice(start, start + rowsPerPage);
+  }, [rows, page, rowsPerPage]);
+
   return (
-    <Card>
-      {/* Table container */}
+    <Card> 
       <Box sx={{ overflowX: 'auto' }}>
-        <Table sx={{ minWidth: 800 }}>
-          {/* Table Header */}
+        <Table sx={{ minWidth: 800 }}> 
           <TableHead>
             <TableRow>
               <TableCell padding="checkbox">
@@ -57,7 +70,6 @@ export function CustomTable({ columns = [], rows = [], count = 0, page = 0, rows
             </TableRow>
           </TableHead>
 
-          {/* Table Body */}
           <TableBody>
             {rows.map((row) => {
               const isSelected = selected.has(row.id);
@@ -83,14 +95,13 @@ export function CustomTable({ columns = [], rows = [], count = 0, page = 0, rows
 
       <Divider />
 
-      {/* Pagination */}
       <TablePagination
         component="div"
-        count={count}
+        count={rows.length}
         page={page}
         rowsPerPage={rowsPerPage}
-        onPageChange={noop}
-        onRowsPerPageChange={noop}
+        onPageChange={handleChangePage}
+        onRowsPerPageChange={handleChangeRowsPerPage}
         rowsPerPageOptions={[5, 10, 25]}
       />
     </Card>

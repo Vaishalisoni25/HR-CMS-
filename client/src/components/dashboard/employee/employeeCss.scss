@@ -1,0 +1,30 @@
+.form-radio-field {
+  width: 100%;
+
+  .MuiFormLabel-root {
+    font-size: 12px;
+    margin-bottom: 4px;
+  }
+
+  .MuiRadioGroup-root {
+    min-height: 40px;          
+    display: flex;
+    align-items: center;
+    // padding: 0 12px;
+    padding-left: 8px;
+    padding-right: 12px;
+
+    border: 1px solid rgba(0, 0, 0, 0.23);
+    border-radius: 4px;
+  }
+
+  /* Hover like TextField */
+  &:hover .MuiRadioGroup-root {
+    border-color: rgba(0, 0, 0, 0.6);
+  }
+
+  /* Error state (optional) */
+  &.error .MuiRadioGroup-root {
+    border-color: #d32f2f;
+  }
+}

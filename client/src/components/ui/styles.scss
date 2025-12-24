@@ -98,20 +98,11 @@
   width: 100%;
 }
 
-/* Dialog Title */
-// .my-dialog-title {
-//   font-size: 1.5rem;
-//   font-weight: 700;
-//   text-align: center;
-//   padding-bottom: 16px;
-// }
-
-/* Dialog Content */
 .my-dialog-content {
   padding-top: 16px;
 }
 
-/* Form grid for side-by-side fields */
+
 .form-grid {
   display: flex;
   flex-wrap: wrap;
@@ -119,10 +110,9 @@
 }
 
 .form-grid > .MuiGrid-item {
-  flex: 1 1 45%; /* each field ~45% width */
+  flex: 1 1 45%; 
 }
 
-/* Dialog Actions */
 .my-dialog-actions {
   justify-content: flex-end;
   padding-top: 16px;

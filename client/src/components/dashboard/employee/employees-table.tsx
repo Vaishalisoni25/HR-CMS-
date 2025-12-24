@@ -19,17 +19,21 @@ import { useSelection } from '@/hooks/use-selection';
 import { IconButton } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
+import { capitalizeText, formatPhone, formatEmail, formatStatus, formatTitle, formatEnumText } from '@/utils/formatter';
+import { deleteEmployee } from '@/services/employeeService';
 
 export interface Employee {
   id: string;
   name: string;
   email: string;
   phone: string;
-  jobTitle: string;
+  position:string;
   employmentType: string;
   status: 'Active' | 'On Leave' | 'Inactive';
   joiningDate: Date;
+   employeeCode: string;
   avatar?: string;
+   tax?: string;
 }
 
 interface EmployeesTableProps {
@@ -41,6 +45,9 @@ interface EmployeesTableProps {
     event: React.MouseEvent<HTMLButtonElement> | null,
     page: number
   ) => void;
+  onRowsPerPageChange: (event: React.ChangeEvent<HTMLInputElement>) => void; 
+   onDelete: (id: string) => void;
+   onEdit: (employee: Employee) => void; 
 }
 
 export function EmployeesTable({
@@ -49,6 +56,9 @@ export function EmployeesTable({
   page = 0,
   rowsPerPage = 0,
   onPageChange,
+  onRowsPerPageChange,
+  onDelete,
+  onEdit
 }: EmployeesTableProps) {
   const rowIds = React.useMemo(() => {
     return rows.map((employee) => employee.id);
@@ -81,7 +91,7 @@ export function EmployeesTable({
               <TableCell>Name</TableCell>
               <TableCell>Email</TableCell>
               <TableCell>Phone</TableCell>
-              <TableCell>Job Title</TableCell>
+              <TableCell>Position</TableCell>
               <TableCell>Employment Type</TableCell>
               <TableCell>Status</TableCell>
               <TableCell>Joining Date</TableCell>
@@ -89,11 +99,11 @@ export function EmployeesTable({
             </TableRow>
           </TableHead>
           <TableBody>
-            {rows.map((row) => {
+            {rows.map((row, index) => {
               const isSelected = selected?.has(row.id);
 
               return (
-                <TableRow hover key={row.id} selected={isSelected}>
+                <TableRow hover key={row.id ?? index} selected={isSelected}>
                   <TableCell padding="checkbox">
                     <Checkbox
                       checked={isSelected}
@@ -109,13 +119,13 @@ export function EmployeesTable({
                   <TableCell>
                     <Stack sx={{ alignItems: 'center' }} direction="row" spacing={2}>
                       <Avatar src={row.avatar} />
-                      <Typography variant="subtitle2">{row.name}</Typography>
+                      <Typography variant="subtitle2">{capitalizeText(row.name)}</Typography>
                     </Stack>
                   </TableCell>
-                  <TableCell>{row.email}</TableCell>
-                  <TableCell>{row.phone}</TableCell>
-                  <TableCell>{row.jobTitle}</TableCell>
-                  <TableCell>{row.employmentType}</TableCell>
+                  <TableCell>{formatEmail(row.email)}</TableCell>
+                  <TableCell>{formatPhone(row.phone)}</TableCell>
+                  <TableCell>{formatEnumText(row.position)}</TableCell>
+                  <TableCell>{formatEnumText(row.employmentType)}</TableCell>
                   <TableCell>
                     <Typography
                       variant="body2"
@@ -129,7 +139,7 @@ export function EmployeesTable({
                         fontWeight: 600,
                       }}
                     >
-                      {row.status}
+                      {formatStatus(row.status)}
                     </Typography>
                   </TableCell>
                   <TableCell>{dayjs(row.joiningDate).format('MMM D, YYYY')}</TableCell>
@@ -138,14 +148,14 @@ export function EmployeesTable({
                       <IconButton
                         color="primary"
                         size="small"
-                        onClick={() => console.log('Edit', row.id)}
+                        onClick={() => onEdit(row)}
                       >
                         <EditIcon />
                       </IconButton>
                       <IconButton
                         color="error"
                         size="small"
-                        onClick={() => console.log('Delete', row.id)}
+                        onClick={() => onDelete(row.id)}
                       >
                         <DeleteIcon />
                       </IconButton>
@@ -162,9 +172,9 @@ export function EmployeesTable({
         component="div"
         count={count}
         onPageChange={onPageChange}
-        // onRowsPerPageChange={noop}
         page={page}
         rowsPerPage={rowsPerPage}
+        onRowsPerPageChange={onRowsPerPageChange}
         rowsPerPageOptions={[5, 10, 25]}
       />
     </Card>

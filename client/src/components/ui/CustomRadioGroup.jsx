@@ -19,17 +19,11 @@ const CustomRadioGroup = ({
   size = 'medium', 
   ...props
 }) => {
-  // const [value, setValue] = useState(defaultValue);
-
-  // const handleChange = (event) => {
-  //   setValue(event.target.value);
-  //   if (onChange) onChange(event.target.value);
-  // };
 
   return (
     <FormControl fullWidth {...props}>
-     
-      {label && <FormLabel>{label}</FormLabel>}
+   
+      {label &&  (<FormLabel>{label}</FormLabel>)}   
       <RadioGroup row={row} name={name} value={value} onChange={onChange}>
         {options.map((option) => (
           <FormControlLabel

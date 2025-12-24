@@ -12,6 +12,8 @@ const CustomDatePicker = ({
   maxDate,
   fullWidth = true,
   disabled = false,
+  error,
+  helperText,
 }) => {
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs}>
@@ -26,6 +28,12 @@ const CustomDatePicker = ({
           textField: {
             fullWidth,
             size: 'small',
+            error,
+            helperText,
+            placeholder: 'Select date',
+            InputLabelProps: {
+              shrink: true,                  
+            },
           },
         }}
       />

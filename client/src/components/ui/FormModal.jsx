@@ -11,11 +11,12 @@ import {
   Grid,
 } from "@mui/material";
 import styles from "./styles.scss";
-import PersonAddIcon from '@mui/icons-material/PersonAdd';
 
 const FormModal = ({
   open,
   title = "Form",
+  subtitle,
+  icon,
   onClose,
   onSubmit,
   submitText = "Submit",
@@ -29,24 +30,19 @@ const FormModal = ({
 
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="md" className="my-dialog">
-      {/* <DialogTitle className="my-dialog-title">
-        <Typography        
-          fontWeight={600}  
-          textAlign="center"  
-        > {title} 
-        </Typography>
-        </DialogTitle> */}
       <DialogTitle className="my-dialog-title">
-        <Box textAlign="center" display="flex" flexDirection="column" alignItems="center" gap={1}>
+        <Box display="flex" flexDirection="column" alignItems="flex-start" gap={1}>
           <Box display="flex" alignItems="center" gap={1}>
-            <PersonAddIcon color="primary" />
+            {icon}
             <Typography fontWeight={700} fontSize="1.75rem">
-              Add Employee
+              {title}
             </Typography>
           </Box>
+          {subtitle && (
           <Typography fontSize="0.875rem" color="text.secondary">
-            Fill out the form to add a new employee
+            {subtitle}
           </Typography>
+           )}
         </Box>
       </DialogTitle>
       <form onSubmit={handleSubmit}>
@@ -69,6 +65,8 @@ const FormModal = ({
 FormModal.propTypes = {
   open: PropTypes.bool.isRequired,
   title: PropTypes.string,
+  subtitle: PropTypes.string,
+  icon: PropTypes.node,
   onClose: PropTypes.func.isRequired,
   onSubmit: PropTypes.func.isRequired,
   submitText: PropTypes.string,

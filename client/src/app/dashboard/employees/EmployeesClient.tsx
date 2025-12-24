@@ -10,147 +10,220 @@ import FormModal from '@/components/ui/FormModal';
 import { EmployeesFilters } from '@/components/dashboard/employee/employees-filters';
 import { EmployeesTable } from '@/components/dashboard/employee/employees-table';
 import type { Employee } from '@/components/dashboard/employee/employees-table';
-import { TextField } from '@mui/material';
 import AddEmployeeForm from '@/components/dashboard/employee/AddEmployeeForm';
+import PersonAddIcon from '@mui/icons-material/PersonAdd';
+import { addEmployee } from '@/services/employeeService';
+import Snackbar from '@mui/material/Snackbar';
+import Alert from '@mui/material/Alert';
+import { getEmployees, deleteEmployee, updateEmployee } from '@/services/employeeService';
+import CustomModal from '@/components/ui/CustomModal';
+import { validateEmployeeForm } from '@/utils/employeeValidations';
+import { CircularProgress } from '@mui/material';
 
-const employees: Employee[] = [
-  {
-    id: 'EMP-01',
-    name: 'Aarav Sharma',
-    avatar: '/assets/avatar-1.png',
-    email: 'aarav.sharma@company.com',
-    phone: '987-654-3210',
-    jobTitle: 'Senior Software Engineer',
-    employmentType: 'Full-Time',
-    status: 'Active',
-    joiningDate: dayjs().subtract(3, 'days').toDate(),
-  },
-  {
-    id: 'EMP-02',
-    name: 'Riya Patel',
-    avatar: '/assets/avatar-2.png',
-    email: 'riya.patel@company.com',
-    phone: '982-112-3388',
-    jobTitle: 'HR Manager',
-    employmentType: 'Full-Time',
-    status: 'Active',
-    joiningDate: dayjs().subtract(1, 'week').toDate(),
-  },
-  {
-    id: 'EMP-03',
-    name: 'Neha Singh',
-    avatar: '/assets/avatar-3.png',
-    email: 'neha.singh@company.com',
-    phone: '912-543-7788',
-    jobTitle: 'UI/UX Designer',
-    employmentType: 'Part-Time',
-    status: 'Active',
-    joiningDate: dayjs().subtract(15, 'day').toDate(),
-  },
-  {
-    id: 'EMP-04',
-    name: 'Kabir Mehta',
-    avatar: '/assets/avatar-4.png',
-    email: 'kabir.mehta@company.com',
-    phone: '998-221-5677',
-    jobTitle: 'Project Manager',
-    employmentType: 'Full-Time',
-    status: 'Active',
-    joiningDate: dayjs().subtract(3, 'week').toDate(),
-  },
-  {
-    id: 'EMP-05',
-    name: 'Ananya Rao',
-    avatar: '/assets/avatar-5.png',
-    email: 'ananya.rao@company.com',
-    phone: '981-335-9981',
-    jobTitle: 'Backend Developer',
-    employmentType: 'Contract',
-    status: 'Active',
-    joiningDate: dayjs().subtract(4, 'month').toDate(),
-  },
-  {
-    id: 'EMP-06',
-    name: 'Mohit Verma',
-    avatar: '/assets/avatar-6.png',
-    email: 'mohit.verma@company.com',
-    phone: '900-440-6652',
-    jobTitle: 'QA Engineer',
-    employmentType: 'Full-Time',
-    status: 'Inactive',
-    joiningDate: dayjs().subtract(6, 'month').toDate(),
-  },
-  {
-    id: 'EMP-07',
-    name: 'Tanya Kapoor',
-    avatar: '/assets/avatar-7.png',
-    email: 'tanya.kapoor@company.com',
-    phone: '987-556-2340',
-    jobTitle: 'Data Analyst',
-    employmentType: 'Full-Time',
-    status: 'Active',
-    joiningDate: dayjs().subtract(2, 'week').toDate(),
-  },
-];
+const EMPTY_EMPLOYEE = {
+  name: '',
+  email: '',
+  phone: '',
+  password: '',
+  position: '',
+  employmentType: '',
+  joiningDate: null,
+  status: 'Active',
+  tax: '',
+  employeeCode: '',
+};
+
+const mapEmployee = (item: any): Employee => ({
+  id: item?._id,
+  name: item?.name ?? '',
+  email: item?.email ?? '',
+  phone: item?.phone ?? '',
+  position: item?.position ?? '',
+  employmentType: item?.employmentType ?? '',
+  status: item?.status ?? 'Active',
+  joiningDate: item?.joiningDate
+    ? new Date(item.joiningDate)
+    : new Date(),
+  avatar: item?.avatar,
+  tax: item?.tax ?? '',
+  employeeCode: item?.employeeCode ?? '',
+});
 
 export default function EmployeesClient() {
+  const [employees, setEmployees] = React.useState<Employee[]>([]);
+  const [loading, setLoading] = React.useState(false);
+  const [error, setError] = React.useState('');
   const [page, setPage] = React.useState(0);
-  const rowsPerPage = 5;
+  const [rowsPerPage, setRowsPerPage] = React.useState(5);
   const [openAddModal, setOpenAddModal] = React.useState(false);
   const [search, setSearch] = React.useState('');
+  const [errors, setErrors] = React.useState<Record<string, string>>({});
+  const [successMessage, setSuccessMessage] = React.useState('');
+  const [openSnackbar, setOpenSnackbar] = React.useState(false);
+  const [editEmployeeId, setEditEmployeeId] = React.useState<string | null>(null);
+  const [submitting, setSubmitting] = React.useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = React.useState(false);
+  const [employeeToDelete, setEmployeeToDelete] = React.useState<string | null>(null);
 
-  const [newEmployee, setNewEmployee] = React.useState({
-    name: '',
-    email: '',
-    phone: '',
-    position: '',
-    employmentType: '',
-    joiningDate: dayjs(),
-    salary: '', 
-    status: 'Active',
-  });
+  const fetchEmployees = React.useCallback(async () => {
+    setLoading(true);
 
-  const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setNewEmployee((prev) => ({ ...prev, [name]: value }));
+    try {
+      const response = await getEmployees();
+      const data = response?.data?.data ?? [];
+
+      setEmployees(data.map(mapEmployee));
+    } catch (err: any) {
+      setError(err?.message ?? 'Failed to fetch employees');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  React.useEffect(() => {
+    fetchEmployees();
+  }, [fetchEmployees]);
+
+  const handleRowsPerPageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
   };
 
-  const handleDateChange = (name: string, date: dayjs.Dayjs | null) => {
-    if (!date) return;
-    setNewEmployee((prev) => ({ ...prev, [name]: date }));
-  };
+  const [newEmployee, setNewEmployee] = React.useState(EMPTY_EMPLOYEE);
 
-  // Handle Add Employee submission
-  const handleAddEmployee = () => {
-    const payload = {
-      ...newEmployee,
-      joiningDate: newEmployee.joiningDate.format('YYYY-MM-DD'),
-    };
-    console.log('New Employee:', newEmployee);
-    // Here you can push to your employees array or call an API
+  const resetForm = () => {
     setOpenAddModal(false);
-    setNewEmployee({
-      name: '',
-      email: '',
-      phone: '',
-      position: '',
-      employmentType: '',
-      joiningDate: dayjs(),
-      salary: '',
-  status: 'Active',
+    setEditEmployeeId(null);
+    setNewEmployee(EMPTY_EMPLOYEE);
+    setErrors({});
+  };
+
+  const handleChange = (name: string, value: any) => {
+    setNewEmployee(prev => ({ ...prev, [name]: value }));
+    setErrors(prev => {
+      const newErrors = { ...prev };
+      if (value?.toString().trim() !== '') {
+        delete newErrors[name];
+      } else {
+        newErrors[name] = `${name.charAt(0).toUpperCase() + name.slice(1)} is required`;
+      }
+
+      return newErrors;
     });
   };
 
-  const filteredEmployees = employees.filter((employee) =>
-    employee.name.toLowerCase().includes(search.toLowerCase()) ||
-    employee.email.toLowerCase().includes(search.toLowerCase()) ||
-    employee.phone.includes(search)
-  );
+  const handleSubmitEmployee = async () => {
+    const validationErrors = validateEmployeeForm(newEmployee, !!editEmployeeId);
+    setErrors(validationErrors);
 
-  const paginatedEmployees = filteredEmployees.slice(
-    page * rowsPerPage,
-    page * rowsPerPage + rowsPerPage
-  );
+    if (Object.keys(validationErrors).length > 0) return;
+    setSubmitting(true);
+
+    const payload: any = {
+      ...newEmployee,
+      joiningDate: newEmployee.joiningDate
+        ? newEmployee.joiningDate.format('YYYY-MM-DD')
+        : null,
+      tax: newEmployee.tax ?? '',
+    };
+
+    if (!payload.password) {
+      delete payload.password;
+    }
+
+    try {
+      if (editEmployeeId) {
+        // UPDATE
+        await updateEmployee(editEmployeeId, payload);
+        console.log(`Updating Employee ID: ${editEmployeeId}`);
+        console.log('Updated Fields:', newEmployee);
+        await fetchEmployees();
+        setSuccessMessage('Employee updated successfully!');
+      } else {
+        // ADD
+        const result = await addEmployee(payload);
+        console.log('Add Employee API response:', result.data);
+        console.log('Joining Date from API:', result.data.joiningDate);
+        await fetchEmployees();
+        setPage(0);
+        setSuccessMessage('Employee created successfully!');
+      }
+
+      setOpenSnackbar(true);
+      setOpenAddModal(false);
+      setEditEmployeeId(null);
+    } catch (error: any) {
+      console.error(error);
+      setError(error?.message ?? 'An error occurred while submitting the employee.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  React.useEffect(() => {
+    setPage(0);
+  }, [search]);
+
+  const filteredEmployees = React.useMemo(() => {
+    return employees.filter((employee) =>
+      (employee.name || '').toLowerCase().includes((search || '').toLowerCase()) ||
+      (employee.email || '').toLowerCase().includes((search || '').toLowerCase()) ||
+      (employee.phone || '').includes(search || '')
+    );
+  }, [employees, search]);
+
+  const paginatedEmployees = React.useMemo(() => {
+    const start = page * rowsPerPage;
+    return filteredEmployees.slice(start, start + rowsPerPage);
+  }, [filteredEmployees, page, rowsPerPage]);
+
+  const handleOpenDeleteModal = (id: string) => {
+    setEmployeeToDelete(id);
+    setDeleteModalOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!employeeToDelete) return;
+
+    try {
+      await deleteEmployee(employeeToDelete);
+      await fetchEmployees();
+      setSuccessMessage('Employee deleted successfully!');
+      setOpenSnackbar(true);
+    } catch (error) {
+      console.error('Error deleting employee:', error);
+      setError('Failed to delete employee.');
+    } finally {
+      setDeleteModalOpen(false);
+      setEmployeeToDelete(null);
+    }
+  };
+
+  const handleCancelDelete = () => {
+    setDeleteModalOpen(false);
+    setEmployeeToDelete(null);
+  };
+
+
+  const handleEditEmployee = (employee: Employee) => {
+    setEditEmployeeId(employee.id);
+
+    setNewEmployee({
+      name: employee?.name ?? '',
+      email: employee?.email ?? '',
+      phone: employee?.phone ?? '',
+      password: '',
+      position: employee?.position ?? '',
+      employmentType: employee?.employmentType ?? '',
+      joiningDate: employee?.joiningDate ? dayjs(employee.joiningDate) : null,
+      employeeCode: employee?.employeeCode ?? '',
+      status: employee?.status ?? 'Active',
+      tax: employee?.tax ?? '',
+    });
+
+    setErrors({});
+    setOpenAddModal(true);
+  };
 
   return (
     <Stack spacing={3}>
@@ -161,36 +234,106 @@ export default function EmployeesClient() {
         <Button
           variant="contained"
           startIcon={<PlusIcon />}
-          onClick={() => setOpenAddModal(true)}
+          onClick={() => {
+            resetForm();
+            setOpenAddModal(true);
+          }}
         >
-          Add
+          Add Employee
         </Button>
       </Stack>
 
       <EmployeesFilters value={search} onChange={(e) => setSearch(e.target.value)} />
 
-      <EmployeesTable
-        count={employees.length}
-        page={page}
-        rows={paginatedEmployees}
-        rowsPerPage={rowsPerPage}
-        onPageChange={(_, newPage) => setPage(newPage)}
-      />
+      {search && (
+        <Typography
+          variant="body2"
+          color="text.secondary"
+          sx={{ ml: 1 }}
+        >
+          {filteredEmployees.length} result
+          {filteredEmployees.length !== 1 && 's'} found
+        </Typography>
+      )}
+
+      {loading ? (
+        <Stack alignItems="center" mt={4}>
+          <CircularProgress />
+          <Typography variant="body2" color="text.secondary" mt={1}>
+            Loading employees...
+          </Typography>
+        </Stack>
+      ) : (
+        <EmployeesTable
+          count={filteredEmployees.length}
+          page={page}
+          rows={paginatedEmployees}
+          rowsPerPage={rowsPerPage}
+          onPageChange={(_, newPage) => setPage(newPage)}
+          onRowsPerPageChange={handleRowsPerPageChange}
+          onDelete={(id) => handleOpenDeleteModal(id)}
+          onEdit={handleEditEmployee}
+        />
+      )}
 
       <FormModal
         open={openAddModal}
-        title="Add Employee"
-        onClose={() => setOpenAddModal(false)}
-        onSubmit={handleAddEmployee}
-        submitText="Add"
+        title={editEmployeeId ? 'Edit Employee' : 'Add Employee'}
+        subtitle={
+          editEmployeeId
+            ? 'Update employee details'
+            : 'Fill out the form to add a new employee'
+        }
+        icon={<PersonAddIcon color="primary" />}
+        onClose={resetForm}
+        onSubmit={handleSubmitEmployee}
+        submitText={submitting ? 'Saving...' : editEmployeeId ? 'Update' : 'Add'}
         cancelText="Cancel"
       >
         <AddEmployeeForm
           values={newEmployee}
-          onChange={handleFormChange}
-          onDateChange={handleDateChange}
+          onChange={(e) => handleChange(e.target.name, e.target.value)}
+          onDateChange={(name, date) => handleChange(name, date)}
+          errors={errors}
         />
       </FormModal>
+      <Snackbar
+        open={openSnackbar}
+        autoHideDuration={3000}
+        onClose={() => setOpenSnackbar(false)}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      >
+        <Alert onClose={() => setOpenSnackbar(false)} severity="success" sx={{ width: '100%' }}>
+          {successMessage}
+        </Alert>
+      </Snackbar>
+      {error && (
+        <Snackbar
+          open
+          autoHideDuration={4000}
+          onClose={() => setError('')}
+          anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+        >
+          <Alert
+            onClose={() => setError('')}
+            severity="error"
+            sx={{ width: '100%' }}
+          >
+            {error}
+          </Alert>
+        </Snackbar>
+      )}
+      <CustomModal
+        open={deleteModalOpen}
+        onClose={handleCancelDelete}
+        title="Confirm Deletion"
+        actions={[
+          { label: 'Cancel', onClick: handleCancelDelete, color: 'primary' },
+          { label: 'Delete', onClick: handleConfirmDelete, color: 'error' },
+        ]}
+      >
+        Are you sure you want to delete this employee? This action cannot be undone.
+      </CustomModal>
     </Stack>
   );
 }
