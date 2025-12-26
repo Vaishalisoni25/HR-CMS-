@@ -5,7 +5,9 @@ import {
   Box,
   Card,
   Checkbox,
+  CircularProgress,
   Divider,
+  Stack,
   Table,
   TableBody,
   TableCell,
@@ -16,9 +18,18 @@ import {
 } from '@mui/material';
 import { useSelection } from '@/hooks/use-selection';
 
-const noop = () => {};
+const noop = () => { };
 
-export function CustomTable({ columns = [], rows = []}) {
+export function CustomTable({
+  columns = [],
+  rows = [],
+  count = 0,
+  page = 0,
+  rowsPerPage = 5,
+  onPageChange = () => { },
+  onRowsPerPageChange = () => { },
+  loading = false,
+}) {
   const rowIds = useMemo(() => rows.map((row) => row.id), [rows]);
   const { selectAll, deselectAll, selectOne, deselectOne, selected } = useSelection(rowIds);
 
@@ -34,27 +45,10 @@ export function CustomTable({ columns = [], rows = []}) {
     checked ? selectOne(id) : deselectOne(id);
   };
 
-  const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(5);
-
-  const handleChangePage = (event, newPage) => {
-    setPage(newPage);
-  };
-
-  const handleChangeRowsPerPage = (event) => {
-    setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(0); 
-  };
-
-  const paginatedRows = useMemo(() => {
-    const start = page * rowsPerPage;
-    return rows.slice(start, start + rowsPerPage);
-  }, [rows, page, rowsPerPage]);
-
   return (
-    <Card> 
+    <Card>
       <Box sx={{ overflowX: 'auto' }}>
-        <Table sx={{ minWidth: 800 }}> 
+        <Table sx={{ minWidth: 800 }}>
           <TableHead>
             <TableRow>
               <TableCell padding="checkbox">
@@ -71,24 +65,45 @@ export function CustomTable({ columns = [], rows = []}) {
           </TableHead>
 
           <TableBody>
-            {rows.map((row) => {
-              const isSelected = selected.has(row.id);
-              return (
-                <TableRow key={row.id} hover selected={isSelected}>
-                  <TableCell padding="checkbox">
-                    <Checkbox
-                      checked={isSelected}
-                      onChange={(e) => handleSelectOne(row.id, e.target.checked)}
-                    />
-                  </TableCell>
-                  {columns.map((col) => (
-                    <TableCell key={col.key}>
-                      {col.render ? col.render(row) : row[col.key]}
+            {loading ? (
+              <TableRow>
+                <TableCell colSpan={columns.length + 1} align="center">
+                  <Stack alignItems="center" py={3}>
+                    <CircularProgress size={24} />
+                    <Typography variant="body2" color="text.secondary" mt={1}>
+                      Loading...
+                    </Typography>
+                  </Stack>
+                </TableCell>
+              </TableRow>
+            ) : rows.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={columns.length + 1} align="center">
+                  <Typography variant="body2" color="text.secondary">
+                    No data found
+                  </Typography>
+                </TableCell>
+              </TableRow>
+            ) : (
+              rows.map((row) => {
+                const isSelected = selected.has(row.id);
+                return (
+                  <TableRow key={row.id} hover selected={isSelected}>
+                    <TableCell padding="checkbox">
+                      <Checkbox
+                        checked={isSelected}
+                        onChange={(e) => handleSelectOne(row.id, e.target.checked)}
+                      />
                     </TableCell>
-                  ))}
-                </TableRow>
-              );
-            })}
+                    {columns.map((col) => (
+                      <TableCell key={col.key}>
+                        {col.render ? col.render(row) : row[col.key]}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                );
+              })
+            )}
           </TableBody>
         </Table>
       </Box>
@@ -97,11 +112,11 @@ export function CustomTable({ columns = [], rows = []}) {
 
       <TablePagination
         component="div"
-        count={rows.length}
+        count={count}
         page={page}
         rowsPerPage={rowsPerPage}
-        onPageChange={handleChangePage}
-        onRowsPerPageChange={handleChangeRowsPerPage}
+        onPageChange={onPageChange}
+        onRowsPerPageChange={onRowsPerPageChange}
         rowsPerPageOptions={[5, 10, 25]}
       />
     </Card>

@@ -8,6 +8,7 @@ import {store} from '@/redux/store';
 import { LocalizationProvider } from '@/components/core/localization-provider';
 import { ThemeProvider } from '@/components/core/theme-provider/theme-provider';
 import { AuthWrapper } from '@/components/auth/AuthWrapper';
+import { SnackbarProvider } from '@/redux/store/SnackbarProvider';
 
 // export const viewport = { width: 'device-width', initialScale: 1 }; 
 
@@ -18,7 +19,11 @@ export default function Layout({ children }) {
         <Provider store={store}>
           <AuthWrapper>
             <LocalizationProvider>
-              <ThemeProvider>{children}</ThemeProvider>
+              <ThemeProvider>
+                <SnackbarProvider>
+                {children}
+                </SnackbarProvider>
+                </ThemeProvider>
             </LocalizationProvider>
           </AuthWrapper>
         </Provider>

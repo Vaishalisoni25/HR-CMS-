@@ -14,16 +14,10 @@ import dayjs from 'dayjs';
 import FormModal from '@/components/ui/FormModal';
 import CustomModal from '@/components/ui/CustomModal';
 import { EmployeesFilters } from '@/components/dashboard/employee/employees-filters';
-import { EmployeesTable } from '@/components/dashboard/employee/employees-table';
 import AddEmployeeForm from '@/components/dashboard/employee/AddEmployeeForm';
 import { validateEmployeeForm } from '@/utils/employeeValidations';
-
-import {
-  fetchEmployees,
-  addEmployee,
-  updateEmployee,
-  deleteEmployee,
-} from '@/redux/slices/employeeSlice';
+import { fetchEmployees, updateEmployee, addEmployee, deleteEmployee, fetchEmployeeById } from '@/redux/store/employees/employeeThunk';
+import { EmployeesTable } from '@/components/dashboard/employee/EmployeesTable';
 
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
 
@@ -69,7 +63,6 @@ export default function EmployeesClient() {
     employmentType: item?.employmentType || '',
     status: item?.status || 'Active',
     joiningDate: item?.joiningDate ? new Date(item.joiningDate) : new Date(),
-    avatar: item?.avatar,
     tax: item?.tax || '',
     employeeCode: item?.employeeCode || '',
   });
@@ -117,46 +110,44 @@ export default function EmployeesClient() {
 
     try {
       if (editEmployeeId) {
-        await dispatch(
-          updateEmployee({
-            id: editEmployeeId,
-            employeeData: payload,
-          })
-        ).unwrap();
+        await dispatch(updateEmployee({ id: editEmployeeId, employeeData: payload }));
         setSuccessMessage('Employee updated successfully!');
       } else {
-        await dispatch(addEmployee(payload)).unwrap();   
-        setSuccessMessage('Employee created successfully!');
+        await dispatch(addEmployee(payload));
         setPage(0);
+        setSuccessMessage('Employee created successfully!');
       }
-
       setOpenSnackbar(true);
       resetForm();
       dispatch(fetchEmployees());
     } catch (err) {
       console.error(err);
-      setErrors({ form: err.message || 'An error occurred' });
+      setSuccessMessage('Failed to save employee.');
+      setOpenSnackbar(true);
     } finally {
       setSubmitting(false);
     }
   };
 
   const handleOpenDeleteModal = (id) => {
+    console.log('Opening delete modal for id:', id);
     setEmployeeToDelete(id);
     setDeleteModalOpen(true);
   };
 
   const handleConfirmDelete = async () => {
     if (!employeeToDelete) return;
+    console.log('Deleting employee with id:', employeeToDelete);
 
     try {
-      await dispatch(deleteEmployee(employeeToDelete)).unwrap();
+      await dispatch(deleteEmployee({ id: employeeToDelete }));
       setSuccessMessage('Employee deleted successfully!');
       setOpenSnackbar(true);
       dispatch(fetchEmployees());
     } catch (err) {
       console.error(err);
-      setErrors({ form: err.message || 'Failed to delete employee' });
+      setSuccessMessage('Failed to delete employee.');
+      setOpenSnackbar(true);
     } finally {
       setDeleteModalOpen(false);
       setEmployeeToDelete(null);
@@ -168,22 +159,42 @@ export default function EmployeesClient() {
     setEmployeeToDelete(null);
   };
 
-  const handleEditEmployee = (employee) => {
-    setEditEmployeeId(employee.id);
-    setNewEmployee({
-      name: employee.name || '',
-      email: employee.email || '',
-      phone: employee.phone || '',
-      password: '',
-      position: employee.position || '',
-      employmentType: employee.employmentType || '',
-      joiningDate: employee.joiningDate ? dayjs(employee.joiningDate) : null,
-      employeeCode: employee.employeeCode || '',
-      status: employee.status || 'Active',
-      tax: employee.tax || '',
-    });
-    setErrors({});
-    setOpenAddModal(true);
+  const handleEditEmployee = async (employeeId) => {
+    console.log('Fetching employee with ID:', employeeId, typeof employeeId);
+    setSubmitting(true);
+    try {
+      const resultAction = await dispatch(fetchEmployeeById({ id: employeeId }));
+      console.log('API response:', resultAction.payload);
+
+      if (fetchEmployeeById.fulfilled.match(resultAction)) {
+        const employee = resultAction.payload;
+
+        setEditEmployeeId(employee._id);
+        setNewEmployee({
+          name: employee.name || '',
+          email: employee.email || '',
+          phone: employee.phone || '',
+          password: '',
+          position: employee.position || '',
+          employmentType: employee.employmentType || '',
+          joiningDate: employee.joiningDate ? dayjs(employee.joiningDate) : null,
+          employeeCode: employee.employeeCode || '',
+          status: employee.status || 'Active',
+          tax: employee.tax || '',
+        });
+
+        setErrors({});
+        setOpenAddModal(true);
+      } else {
+        throw new Error(resultAction.error.message);
+      }
+    } catch (err) {
+      console.error(err);
+      setSuccessMessage('Failed to load employee data.');
+      setOpenSnackbar(true);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const filteredEmployees = React.useMemo(() => {
@@ -237,25 +248,20 @@ export default function EmployeesClient() {
         </Typography>
       )}
 
-      {loading ? (
-        <Stack alignItems="center" mt={4}>
-          <CircularProgress />
-          <Typography variant="body2" color="text.secondary" mt={1}>
-            Loading employees...
-          </Typography>
-        </Stack>
-      ) : (
-        <EmployeesTable
-          count={filteredEmployees.length}
-          page={page}
-          rows={paginatedEmployees}
-          rowsPerPage={rowsPerPage}
-          onPageChange={(_, newPage) => setPage(newPage)}
-          onRowsPerPageChange={handleRowsPerPageChange}
-          onDelete={handleOpenDeleteModal}
-          onEdit={handleEditEmployee}
-        />
-      )}
+      <EmployeesTable
+        rows={paginatedEmployees}
+        loading={loading}
+        count={filteredEmployees.length}
+        page={page}
+        rowsPerPage={rowsPerPage}
+        onPageChange={(_, newPage) => setPage(newPage)}
+        onRowsPerPageChange={handleRowsPerPageChange}
+        onEdit={(id) => handleEditEmployee(id)}
+        onDelete={(id) => {
+          setEmployeeToDelete(id);
+          setDeleteModalOpen(true);
+        }}
+      />
 
       <FormModal
         open={openAddModal}
