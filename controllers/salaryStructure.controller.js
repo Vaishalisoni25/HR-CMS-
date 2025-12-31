@@ -7,12 +7,12 @@ export async function createSalaryStructure(req, res, next) {
   try {
     const {
       employeeId,
-      month,
+      endMonth,
       year,
       HRA,
       basicPay,
       specialAllowance,
-      effectiveFrom,
+      startMonth,
       effectiveTo,
       status,
     } = req.body;
@@ -29,13 +29,13 @@ export async function createSalaryStructure(req, res, next) {
 
     const salarystructure = await Salary_Structure.create({
       employeeId,
-      month,
+      endMonth,
       year,
       HRA,
       basicPay,
       specialAllowance,
       grossSalary: finalGrossSalary,
-      effectiveFrom,
+      startMonth,
       effectiveTo,
       status,
     });
