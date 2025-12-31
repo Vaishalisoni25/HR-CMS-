@@ -32,8 +32,8 @@ const salaryStructureSchema = new Schema({
     type: Date,
     required: true,
   },
-  // salary Increment from this date
-  effectiveTo: {
+
+  endMonth: {
     type: Date,
   },
   //for show Increment Status
