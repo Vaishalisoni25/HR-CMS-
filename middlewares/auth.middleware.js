@@ -1,4 +1,5 @@
 import jwt from "jsonwebtoken";
+import { customError } from "../utils/customError.js";
 
 import { ROLES } from "../config/constant.js";
 
@@ -6,16 +7,7 @@ const { verify } = jwt;
 
 export default function authMiddleware(allowedRoles = []) {
   return function (req, res, next) {
-    const authHeader = req.headers.authorization;
-
-    if (!authHeader) {
-      return res.status(401).json({ message: "Token Missing" });
-    }
-
-    const token = authHeader.startsWith("Bearer")
-      ? authHeader.split(" ")[1]
-      : authHeader;
-    console.log(token);
+    const token = req.headers["authorization"];
 
     if (!token) return res.status(401).json({ msg: "Token missing" });
 

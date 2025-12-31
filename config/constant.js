@@ -35,6 +35,11 @@ export const SALARY_STATUS = {
   HOLD: "hold",
 };
 
+export const SALARY_STRUCTURE_STATUS = {
+  ACTIVE: "active",
+  EXPIRED: "expired",
+};
+
 export const SETTING_COMPONENT = {};
 
 /*

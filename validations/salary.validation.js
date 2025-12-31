@@ -26,6 +26,6 @@ export const salaryGenerateSchema = z.object({
   }),
 
   status: z.enum(Object.values(SALARY_STATUS)).optional(),
-  generatedAt: z.date().optional(),
+  generatedAt: z.coerce.date().optional(),
   netSalary: z.number().min(0),
 });
