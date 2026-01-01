@@ -5,7 +5,7 @@ const EmployeeSchema = new Schema({
   email: String,
   password: String,
   phone: String,
-  companyCode: String,
+  EmployeeCode: String,
   joiningDate: Date,
 
   employmentType: {
@@ -34,6 +34,11 @@ const EmployeeSchema = new Schema({
   },
 
   status: { type: String, enum: ["Active", "Inactive"], default: "Active" },
+
+  tax: {
+    type: String,
+    enum: ["PF", "TDS"],
+  },
 });
 
 export default model("Employee", EmployeeSchema);

@@ -3,13 +3,14 @@ import { z } from "zod";
 export const employeeSchema = z.object({
   name: z.string(),
   email: z.string().email(),
-  phone: z.string().optional(),
-  joiningDate: z.string(),
-  employmentType: z.string(),
+  phone: z.string().optional().optional(),
+  joiningDate: z.string().optional(),
+  employmentType: z.string().optional(),
   allowedLeaves: z.number().optional(),
   position: z.string().optional(),
-  companyCode: z.string().optional(),
+  employeeCode: z.string().optional(),
   basicSalary: z.number().optional(),
 
-  status: z.enum(["Active", "Inactive"]).optional(), // Need to ask
+  status: z.enum(["Active", "Inactive"]).optional(),
+  tax: z.enum(["PF", "TDS"]),
 });

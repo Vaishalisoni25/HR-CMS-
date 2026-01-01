@@ -12,7 +12,7 @@ const salarySchema = new Schema({
   year: { type: Number, required: true },
 
   earnings: {
-    basic_salary: { type: Number, required: true },
+    basicSalary: { type: Number, required: true },
     overtime: { type: Number, default: 0 },
     bonus: { type: Number, default: 0 },
     leaveEncashment: { type: Number, default: 0 },

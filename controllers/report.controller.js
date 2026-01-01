@@ -10,10 +10,7 @@ export async function employeeReport(req, res, next) {
     let newEmployeesThisMonth = 0;
 
     if (month && year) {
-      const { m, y, startDate, endDate, error } = validationMonthYear(
-        month,
-        year
-      );
+      const { startDate, endDate, error } = validationMonthYear(month, year);
 
       if (error) {
         return res.status(400).json({ success: false, message: error });

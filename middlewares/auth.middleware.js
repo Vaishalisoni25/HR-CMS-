@@ -20,9 +20,7 @@ export default function authMiddleware(allowedRoles = []) {
     }
 
     if (allowedRoles.length > 0 && !allowedRoles.includes(req.user.role)) {
-      return res
-        .status(403)
-        .json({ msg: "Forbidden: insufficient privileges" });
+      return res.status(403).json({ msg: "Access denied" });
     }
 
     next();
