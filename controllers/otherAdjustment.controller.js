@@ -1,0 +1,136 @@
+import OtherAdjustment from "../models/otherAdjustment.model.js";
+import Employee from "../models/employee.model.js";
+import { validationMonthYear } from "../utils/date.js";
+import mongoose from "mongoose";
+
+export async function createAdjustment(req, res, next) {
+  try {
+    const { month, year, amount, type, description } = req.body;
+    const employeeId = req.params.id;
+
+    if (!mongoose.Types.ObjectId.isValid(employeeId)) {
+      return res.status(400).json({ message: "Invalid Employee Id" });
+    }
+
+    if (!month || !year) {
+      return res.status(400).json({ message: "Month and Year are required" });
+    }
+
+    if (!amount || amount <= 0) {
+      return res.status(400).json({ message: "Valid amount is required" });
+    }
+
+    if (!["ADD", "LESS"].includes(type)) {
+      return res.status(400).json({ message: "Type must be ADD or LESS" });
+    }
+
+    const employee = await Employee.findById(employeeId);
+    if (!employee) {
+      return res.status(404).json({ message: "Employee not found" });
+    }
+
+    const image = req.file ? req.file.path : null;
+
+    const { m, y } = validationMonthYear(month, year);
+
+    const otherAdjustment = await OtherAdjustment.create({
+      employeeId,
+      month: m,
+      year: y,
+      amount,
+      type,
+      description,
+      image,
+    });
+    res.status(201).json({
+      success: true,
+      message: "Other Adjustment Created Successfully.",
+      data: otherAdjustment,
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function getAllAdjustment(_req, res, next) {
+  try {
+    const adjustment = await OtherAdjustment.find().lean();
+    if (!adjustment.length === 0) {
+      return res.status(404).json({ message: "Adjustment not found" });
+    }
+    res.status(200).json({
+      success: true,
+      message: "Ajustment fetched successfully",
+      data: adjustment,
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function getAdjustmentById(req, res, next) {
+  try {
+    const employeeId = req.params.id;
+    if (!employeeId) {
+      return res.status(404).json({ message: "Employee Id required" });
+    }
+
+    const adjustment = await OtherAdjustment.find({ employeeId });
+
+    if (!adjustment.length === 0) {
+      return res.status(404).json({ message: "Other Adjustment not found" });
+    }
+    res.status(200).json({
+      success: true,
+      message: "Other Adjustment fetched successfully",
+      data: adjustment,
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+export async function updateAdjustmentById(req, res, next) {
+  try {
+    const adjustmentId = req.params.id;
+    if (!adjustmentId) {
+      return res.status(400).json({ message: "Adjustment Id is required" });
+    }
+    const adjustment = await OtherAdjustment.findByIdAndUpdate(
+      adjustmentId,
+      req.body,
+      {
+        new: true,
+      }
+    );
+    if (!adjustment) {
+      return res.status(404).json({ message: "Adjustment not found" });
+    }
+    res.status(200).json({
+      success: true,
+      message: "Adjustments Updated Successfully",
+      data: adjustment,
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function deleteAdjustmentById(req, res, next) {
+  try {
+    const adjustmentId = req.params.id;
+    if (!adjustmentId) {
+      return res.status(400).json({ message: "Adjustment Id is required" });
+    }
+    const adjustment = await OtherAdjustment.findByIdAndDelete(adjustmentId);
+    if (!adjustment) {
+      return res.status(404).json({ message: "Adjustment not found" });
+    }
+    res.status(200).json({
+      success: true,
+      message: "Adjustments deleted successfully",
+      data: adjustment,
+    });
+  } catch (err) {
+    next(err);
+  }
+}

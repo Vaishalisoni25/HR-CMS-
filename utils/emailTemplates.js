@@ -1,6 +1,4 @@
-import { date } from "zod";
-import { formatFullDate } from "./date.js";
-
+import { SALARY_COMPONENT } from "../config/constant.js";
 export const employeeEmailTemplate = {
   created: ({ name, date, email, loginPassword }) => `
        <h2>Welcome to Company</h2>
@@ -41,18 +39,27 @@ export const salaryEmailTemplate = {
 
     <h3 style="color:#444;">Earnings</h3>
     <ul>
-      <li><b>Basic Salary:</b> ₹${earnings.basic_salary}</li>
-      <li><b>Bonus:</b> ₹${earnings.bonus}</li>
-      <li><b>Overtime:</b> ₹${earnings.overtime}</li>
-      <li><b>Paid Leave Encashment:</b> ₹${earnings.leaveEncashment}</li>
-      <li><b>Other Adjustments:</b> ₹${earnings.otherAdjustment}</li>
+      <li><b>Basic Salary:</b> ₹${earnings[SALARY_COMPONENT.BASIC_SALARY]}</li>
+<li><b>Bonus:</b> ₹${earnings[SALARY_COMPONENT.BONUS]}</li>
+<li><b>Overtime:</b> ₹${earnings[SALARY_COMPONENT.OVERTIME]}</li>
+<li><b>Paid Leave Encashment:</b> ₹${
+    earnings[SALARY_COMPONENT.LEAVE_ENCASHMENT]
+  }</li>
+<li><b>Other Adjustments:</b> ₹${
+    earnings[SALARY_COMPONENT.OTHER_ADJUSTMENT]
+  }</li>
+
     </ul>
 
     <h3 style="color:#444;">Deductions</h3>
     <ul>
-      <li><b>PF (12%):</b> ₹${deductions.pf}</li>
-      <li><b>LWP Deduction:</b> ₹${deductions.lwp_deduction}</li>
-      <li><b>TDS:</b> ₹${deductions.tds}</li>
+     <li><b>PF:</b> ₹${deductions[SALARY_COMPONENT.PF]}</li>
+<li><b>Professional Tax:</b> ₹${
+    deductions[SALARY_COMPONENT.PROFESSIONAL_TAX]
+  }</li>
+<li><b>LWP Deduction:</b> ₹${deductions[SALARY_COMPONENT.LWP_DEDUCTION]}</li>
+<li><b>TDS:</b> ₹${deductions[SALARY_COMPONENT.TDS]}</li>
+
     </ul>
 
     <h2 style="color:green;">Net Salary: ₹${netSalary}</h2>
@@ -61,4 +68,30 @@ export const salaryEmailTemplate = {
     <p>Best Regards,<br><b>HR Team</b></p>
   </div>
   `,
+};
+
+export const employeeFeedbackTemplate = ({
+  name,
+  subject,
+  content,
+  rating,
+}) => {
+  return `
+    <div style="font-family: Arial, sans-serif">
+      <h2>Hello ${name},</h2>
+
+      <p>You have received feedback from HR.</p>
+
+      <h3>${subject}</h3>
+
+      <div style="padding:10px;border:1px solid #ddd">
+        ${content}
+      </div>
+
+      ${rating ? `<p><strong>Rating:</strong> ${rating}/5</p>` : ""}
+
+      <br/>
+      <p>Best Regards,<br/>HR Team</p>
+    </div>
+  `;
 };
