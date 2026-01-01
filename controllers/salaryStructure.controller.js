@@ -12,8 +12,8 @@ export async function createSalaryStructure(req, res, next) {
       HRA,
       basicPay,
       specialAllowance,
-      effectiveFrom,
-      effectiveTo,
+      startMonth,
+      endMonth,
       status,
     } = req.body;
 
@@ -35,8 +35,8 @@ export async function createSalaryStructure(req, res, next) {
       basicPay,
       specialAllowance,
       grossSalary: finalGrossSalary,
-      effectiveFrom,
-      effectiveTo,
+      startMonth,
+      endMonth,
       status,
     });
     res.status(201).json({

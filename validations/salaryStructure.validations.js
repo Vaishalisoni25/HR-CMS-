@@ -15,7 +15,7 @@ export const SalaryStructureSchema = z.object({
   HRA: z.number().min(0).optional(),
   specialAllowance: z.number().min(0).optional(),
   grossSalary: z.number().min(0).optional(),
-  effectiveFrom: z.coerce.date().optional(),
-  effectiveTo: z.coerce.date().optional(),
+  startMonth: z.coerce.date().optional(),
+  endMonth: z.coerce.date().optional(),
   status: z.enum(Object.values(SALARY_STRUCTURE_STATUS)).optional(),
 });
