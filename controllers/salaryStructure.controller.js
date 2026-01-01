@@ -20,7 +20,7 @@ export async function createSalaryStructure(req, res, next) {
     if (!employeeId) {
       return res.status(400).json({ message: "Employee id is required" });
     }
-    const employee = await Employee.findById(employeeId);
+    const employee = await Employee.findById(employeeId).select("name");
 
     if (!employee)
       return res.status(404).json({ message: "Employee not found" });
@@ -29,6 +29,7 @@ export async function createSalaryStructure(req, res, next) {
 
     const salarystructure = await Salary_Structure.create({
       employeeId,
+      name: employee.name,
       month,
       year,
       HRA,
@@ -66,12 +67,12 @@ export async function getSalaryStructure(_req, res, next) {
 
 export async function getSalaryStructureById(req, res, next) {
   try {
-    const employeeId = req.params.id;
-    if (!employeeId) {
-      return res.status(400).json({ message: "Employee Id required" });
+    const salaryId = req.params.id;
+    if (!salaryId) {
+      return res.status(400).json({ message: "Salary  Id required" });
     }
 
-    const salaryStructure = await Salary_Structure.findById(employeeId);
+    const salaryStructure = await Salary_Structure.findById(salaryId);
 
     if (!salaryStructure) {
       return res.status(401).json({ message: "Salary Structure not found" });
@@ -88,12 +89,12 @@ export async function getSalaryStructureById(req, res, next) {
 }
 export async function updateSalaryStructureById(req, res, next) {
   try {
-    const employeeId = req.params.id;
-    if (!employeeId) {
-      return res.status(400).json({ message: "Employee Id required" });
+    const salaryId = req.params.id;
+    if (!salaryId) {
+      return res.status(400).json({ message: "Salary Id required" });
     }
     const salaryStructure = await Salary_Structure.findByIdAndUpdate(
-      employeeId,
+      salaryId,
       req.body,
       {
         new: true,
@@ -116,14 +117,12 @@ export async function updateSalaryStructureById(req, res, next) {
 
 export async function deleteSalaryStructureById(req, res, next) {
   try {
-    const employeeId = req.params.id;
-    if (!employeeId) {
-      return res.status(400).json({ message: "Employee Id required" });
+    const salaryId = req.params.id;
+    if (!salaryId) {
+      return res.status(400).json({ message: "Salary Id required" });
     }
 
-    const salaryStructure = await Salary_Structure.findByIdAndDelete(
-      employeeId
-    );
+    const salaryStructure = await Salary_Structure.findByIdAndDelete(salaryId);
 
     if (!salaryStructure) {
       return res.status(401).json({ message: "Salary Structure not found" });

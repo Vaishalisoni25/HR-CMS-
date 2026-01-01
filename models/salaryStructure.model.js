@@ -8,6 +8,10 @@ const salaryStructureSchema = new Schema({
     ref: "Employee",
     required: true,
   },
+  name: {
+    type: String,
+    required: true,
+  },
   endMonth: { type: Number, required: true },
   year: { type: Number, required: true },
 
