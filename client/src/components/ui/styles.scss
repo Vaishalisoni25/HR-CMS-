@@ -1,0 +1,152 @@
+.custom-form {
+  display: block;
+
+  &.grid {
+    display: grid;
+    gap: 16px;
+  }
+
+  .form-error {
+    grid-column: 1 / -1;
+    color: red;
+    margin-bottom: 10px;
+    font-size: 14px;
+  }
+
+  .submit-btn {
+    margin-top: 15px;
+    padding: 10px 20px;
+    background: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+
+    &.loading {
+      background: #999;
+      cursor: not-allowed;
+    }
+  }
+
+  .reset-btn {
+    margin-left: 10px;
+    padding: 10px 20px;
+    background: #e0e0e0;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+}
+
+/* --------------------
+   Event Chip UI
+-------------------- */
+.event-chip {
+  padding: 4px;
+  border-radius: 6px;
+  text-align: center;
+  font-size: 12px;
+  color: white;
+  // width: 100%;
+  display: block;
+}
+
+/* --------------------
+   Event Colors
+-------------------- */
+.present-event .event-chip {
+  background-color: #2DD4BF; // kepple[400]
+}
+
+.holiday-event .event-chip {
+  background-color: #FCA5A5; // redOrange[200]
+}
+
+.wfh-event .event-chip {
+  background-color: #93C5FD; // neonBlue[200]
+}
+
+.absent-event .event-chip {
+  background-color: #CBD5E1; // stormGrey[200]
+}
+
+/* --------------------
+   Legend Styles
+-------------------- */
+.legend-chip {
+  font-weight: 600 !important;
+  padding: 6px 12px !important;
+  // border-radius: 6px !important;
+}
+
+/* Present */
+.legend-chip.present {
+  background-color: #2DD4BF !important;
+  color: #0F766E !important;
+}
+
+/* Holiday */
+.legend-chip.holiday {
+  background-color: #FCA5A5 !important;
+  color: #7F1D1D !important;
+}
+
+/* WFH */
+.legend-chip.wfh {
+  background-color: #93C5FD !important;
+  color: #1E3A8A !important;
+}
+
+/* Absent */
+.legend-chip.absent {
+  background-color: #CBD5E1 !important;
+  color: #1E293B !important;
+}
+// .meeting-event {
+//   background-color: purple !important;
+//   color: white !important;
+//   border-radius: 4px;
+// }
+/* --------------------
+   FullCalendar Tweaks (optional)
+-------------------- */
+// .fc .fc-daygrid-day-number {
+//   font-weight: 600;
+//   margin-right: 4px;
+// }
+
+// .fc-daygrid-event {
+//   margin: 2px 0 !important;
+// }
+
+/* Header title (month/week/day name) */
+// .fc .fc-toolbar-title {
+//   color: #2DD4BF;     
+//   font-weight: bold;  
+//   font-size: 1.5rem;    
+// }
+
+/* Day numbers (top-left of each day cell) */
+.fc .fc-daygrid-day-number {
+  color: #0F172A;      
+  font-weight: 500;    
+}
+
+/* Weekend cells (Saturday & Sunday background) */
+.fc .fc-day-sat, .fc .fc-day-sun {
+  background-color: #f0f0f0;
+}
+
+/* Optional: hover effect on day cells */
+.fc .fc-daygrid-day:hover {
+  background-color: #E0F2FE;
+}
+/* Column headers (Mon, Tue, ...) */
+.fc .fc-col-header-cell {
+  background-color: #F0F9FF;  
+  color: #0F172A;            
+  font-weight: bold;           
+  border-bottom: 2px solid #D1D5DB; 
+}
+
+

@@ -1,8 +1,10 @@
 import Attendance from "../models/attendance.model.js";
 import Employee from "../models/employee.model.js";
 import { sendEmail } from "../services/email.service.js";
-import { ROLES } from "../config/constant.js";
-import { formatFullDate } from "../utils/dateGenerate.js";
+import { ROLES, ATTENDANCE_STATUSES } from "../config/constant.js";
+import { formatFullDate, validationMonthYear } from "../utils/date.js";
+import { leaveEmailTemplate } from "../utils/emailTemplates.js";
+
 export async function markAttendance(req, res) {
   try {
     if (![ROLES.HR, ROLES.SUPERADMIN].includes(req.user.role)) {
@@ -10,78 +12,74 @@ export async function markAttendance(req, res) {
     }
     const employeeId = req.params.id;
     const { date, status, leaveType } = req.body;
-    console.log(req.body);
 
     if (!employeeId)
       return res.status(400).json({ msg: "Employee ID is required" });
     if (!date) return res.status(400).json({ msg: "Date is required" });
     if (!status) return res.status(400).json({ msg: "Status is required" });
 
-    if (status === "Attended") {
-      if (leaveType) {
-        return res.status(400).json({
-          msg: "Leave type is not allowed when status is present",
-        });
-      }
-    }
-
-    const formattedDate = formatFullDate(new Date());
-
-    console.log(employeeId);
-
     const employee = await Employee.findById(employeeId);
     if (!employee) return res.status(404).json({ msg: "Employee not found" });
 
     let updateData = {
       employeeId,
-      date: d,
+      date,
       status,
-      leaveType: status === "Attended" ? null : leaveType || null,
+      leaveType:
+        status === ATTENDANCE_STATUSES.ATTENDED ? null : leaveType || null,
     };
 
-    if (status === "Leave") {
+    const formattedDate = formatFullDate(new Date());
+    let attendance;
+
+    if (status === ATTENDANCE_STATUSES.ATTENDED) {
+      attendance = await Attendance.findOneAndUpdate(
+        { employeeId, date },
+        updateData,
+        { upsert: true, new: true }
+      );
+      return res.status(201).json({
+        success: true,
+        message: "Attendance marked",
+        data: attendance,
+      });
+    }
+
+    if (status === ATTENDANCE_STATUSES.LEAVE) {
       if (employee.usedLeaves < employee.allowedLeaves) {
         employee.usedLeaves += 1;
         await employee.save();
 
         updateData.isPaidLeave = true;
-        updateData.status = "Leave";
+        updateData.status = ATTENDANCE_STATUSES.LEAVE;
 
         //send email - approved leave
-        const subject = `Leave Approved`;
-        const htmlTemp = `
-  
- <div style="font-family: Arial, sans-serif; padding: 20px;">
- 
-    <p>Dear <b>${employee.name}</b>,</p>
-          <p>Your leave request has been <b>APPROVED</b>.</p>
-          <p>Date: <b>${formattedDate}</b></p>
-          <br/>
-          <p>Best Regards,<br>HR Team</p>
-
-     `;
         await sendEmail({
           to: employee.email,
           subject: "Your Leave is Approved",
-          html: htmlTemp,
+          html: leaveEmailTemplate.approved({
+            name: employee.name,
+            date: formattedDate,
+          }),
         });
       } else {
         updateData.isPaidLeave = false;
-        updateData.status = "LWP";
+        updateData.status = ATTENDANCE_STATUSES.LWP;
       }
     }
 
-    const attendance = await Attendance.findOneAndUpdate(
-      { employeeId, date: d },
+    attendance = await Attendance.findOneAndUpdate(
+      { employeeId, date },
       updateData,
       {
         upsert: true,
         new: true,
       }
     );
-    return res.json({
-      msg: "Attendance / Leave marked successfully",
-      attendance,
+    return res.status(201).json({
+      success: true,
+      message: "Leave marked",
+      data: attendance,
     });
   } catch (err) {
     return res.status(500).json({ msg: "Server error", error: err.message });
@@ -90,39 +88,32 @@ export async function markAttendance(req, res) {
 
 // GET ATTENDANCE
 
-export async function getAttendance(req, res) {
+export async function getAttendance(req, res, _next) {
   try {
-    const { month, year } = req.body;
+    const { month, year } = req.query;
     const employeeId = req.params.id;
 
-    console.log(req.body);
     if (!employeeId) {
       return res.status(400).json({ message: "Employee Id is required " });
     }
-    if (!month || !year) {
-      return res.status(400).json({ message: "Month and Year are required" });
+
+    const result = validationMonthYear(month, year);
+    if (result.error) {
+      return res.status(400).json({ message: result.error });
     }
 
-    const m = Number(month);
-    const y = Number(year);
-
-    if (isNaN(m) || isNaN(y) || m < 1 || m > 12) {
-      return res.status(400).json({ message: "Invalid month or year" });
-    }
-
-    const startDate = new Date(y, m - 1, 1);
-    const endDate = new Date(y, m, 0, 23, 59, 59, 999);
+    const { startDate, endDate } = result;
 
     const attendanceRecords = await Attendance.find({
       employeeId,
       date: { $gte: startDate, $lte: endDate },
-    });
+    }).lean();
 
     let leaveCount = 0;
     let paidLeaveCount = 0;
 
     attendanceRecords.forEach((r) => {
-      if (r.status === "Leave") {
+      if (r.status === ATTENDANCE_STATUSES.LEAVE) {
         leaveCount++;
         if (r.isPaidLeave) paidLeaveCount++;
       }
@@ -137,6 +128,6 @@ export async function getAttendance(req, res) {
     });
   } catch (err) {
     console.log(err);
-    return res.status(500).json({ msg: "Server Error", err });
+    _next(err);
   }
 }

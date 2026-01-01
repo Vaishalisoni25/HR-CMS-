@@ -3,7 +3,6 @@ import jwt from "jsonwebtoken";
 const { sign } = jwt;
 
 import { hash, compare } from "bcrypt";
-import { customError } from "../utils/customError.js";
 
 const createToken = (user) => {
   return sign(
@@ -13,22 +12,24 @@ const createToken = (user) => {
       role: user.role,
     },
     process.env.JWT_SECRET,
-    { expiresIn: "7d" }
+    { expiresIn: "9d" }
   );
 };
 
 export async function register(req, res, next) {
   try {
-    console.log("running");
-
-    if (req.user.role !== "hr" && req.user.role !== "superadmin") {
+    if (
+      !req.user ||
+      (req.user.role !== "hr" && req.user.role !== "superadmin")
+    ) {
       return res.status(403).json({ message: "Access denied" });
     }
+
     const { name, email, password, role } = req.body;
 
     const existing = await User.findOne({ email });
     if (existing) {
-      return next(new customError(""));
+      return res.status(400).json({ message: "User already exists" });
     }
 
     const hashedPass = await hash(password, 10);
@@ -42,11 +43,12 @@ export async function register(req, res, next) {
 
     res.status(201).json({ token: createToken(user) });
   } catch (err) {
+    next(err);
     res.status(500).json({ message: err.message });
   }
 }
 
-export async function login(req, res, next) {
+export async function login(req, res) {
   const { email, password } = req.body;
 
   const user = await User.findOne({ email });
@@ -59,9 +61,9 @@ export async function login(req, res, next) {
   res.json({ token: createToken(user) });
 }
 
-export async function getAllUsers(req, res) {
+export async function getAllUsers(_req, res) {
   try {
-    const users = await User.find();
+    const users = await User.find().lean();
     return res.json(users);
   } catch (error) {
     return res
@@ -75,11 +77,11 @@ export async function getUserById(req, res) {
     const { id } = req.params;
 
     if (req.user.role === "employee" && req.user.id !== id) {
-      return next(new customError(""));
+      return res.status(404).json({ message: "" });
     }
 
     if (req.user.role === "employee") {
-      return next(new customError(""));
+      return res.status(404).json({ message: "" });
     }
     const user = await User.findById(res.params.id);
 
@@ -99,7 +101,7 @@ export async function updateUserById(req, res) {
     });
 
     if (!user) {
-      return next(new customError("user not found", 404));
+      return res.status(404).json({ message: "" });
     }
     res.json({
       success: true,
@@ -111,11 +113,11 @@ export async function updateUserById(req, res) {
   }
 }
 
-export async function deleteUserById(req, res, next) {
+export async function deleteUserById(_req, res, next) {
   try {
     const user = await User.findByIdAndDelete(res.params.id);
     if (!user) {
-      return next(new customError("user not found", 404));
+      return res.status(404).json({ message: "" });
     }
     res.json({
       success: true,

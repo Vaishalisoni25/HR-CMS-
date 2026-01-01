@@ -1,6 +1,6 @@
 import { success, ZodError } from "zod";
 
-const errorHandler = (err, req, res, next) => {
+const errorHandler = (err, _req, res, _next) => {
   console.error("ERROR:", err);
 
   // Handle Zod errors

@@ -9,7 +9,7 @@ export const ATTENDANCE_STATUSES = {
   ABSENT: "absent",
   LEAVE: "leave",
   HALF_DAY: "halfDay",
-  LWP: "LWP",
+  LWP: "lwp",
   //TODAY_DATE: "Today-Date",
 };
 export const LEAVE_TYPES = {
@@ -17,15 +17,23 @@ export const LEAVE_TYPES = {
   LEAVE: "leave",
   HALFDAY: "halfDay",
   PRIVILEGE: "privilege",
-  WFH: "WFH",
-  LWP: "LWP",
+  WFH: "wfh",
+  LWP: "lwp",
 };
 export const SALARY_COMPONENT = {
   BASIC_SALARY: "basicSalary",
   BONUS: "bonus",
-  PF: "PF",
-  TDS: "TDS",
-  LWP_DEDUCTION: "LWP-Deduction",
+  PF: "pf",
+  TDS: "tds",
+  OVERTIME: "overtime",
+  PROFESSIONAL_TAX: "professionalTax",
+  LWP_DEDUCTION: "lwpDeduction",
+  OTHER_ADJUSTMENT: "otherAdjustment",
+  LEAVE_ENCASHMENT: "leaveEncashment",
+};
+export const SALARY_STRUCTURE_COMPONENT = {
+  HRA: "hra",
+  SPECIAL_ALLOWANCE: "specialAllowance",
 };
 
 export const SALARY_STATUS = {
@@ -34,10 +42,20 @@ export const SALARY_STATUS = {
   HOLD: "hold",
 };
 
-/*
-Send Auto Email
-- create employee (login details - email, pass)
-- mark leave
-- generate salary
+export const SALARY_STRUCTURE_STATUS = {
+  ACTIVE: "active",
+  EXPIRED: "expired",
+};
+//Employee feedback
 
-*/
+export const FEEDBACK_TYPES = {
+  FEEDBACK: "feedback",
+  CODE_REVIEW: "code-review",
+};
+//  email status for employee feedback
+
+export const EMAIL_STATUS = {
+  PENDING: "pending",
+  SENT: "sent",
+  FAILED: "failed",
+};
