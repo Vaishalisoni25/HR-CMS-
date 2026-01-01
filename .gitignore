@@ -1,5 +1,7 @@
-# Dependencies
 node_modules/
 
 # Environment variables
 .env
+client/node_modules/
+client/.next/
+client/out/
