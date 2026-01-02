@@ -1,8 +1,6 @@
 import Employee from "../models/employee.model.js";
-import bcrypt from "bcrypt";
 import { ROLES } from "../config/constant.js";
 import { customError } from "../utils/customError.js";
-import { success } from "zod";
 import { generateCode } from "../utils/generateCode.js";
 import { sendEmail } from "../services/email.service.js";
 import { formatFullDate } from "../utils/date.js";
@@ -10,35 +8,15 @@ import { employeeEmailTemplate } from "../utils/emailTemplates.js";
 
 export async function createEmployee(req, res, next) {
   try {
-    const {
-      name,
-      email,
-      phone,
-      joiningDate,
-      position,
-      employmentType,
-      companyCode,
-      basicSalary,
-    } = req.body;
+    const { email } = req.body;
 
     const exists = await Employee.findOne({ email });
     if (exists) {
       return res.status(409).json({ message: "Employee already exist" });
     }
     const loginPassword = generateCode();
-    const password = await bcrypt.hash(loginPassword, 10);
 
-    const employee = await Employee.create({
-      name,
-      email,
-      password,
-      phone,
-      joiningDate,
-      position,
-      companyCode,
-      employmentType,
-      basicSalary,
-    });
+    const employee = await Employee.create(req.body);
     const formattedDate = formatFullDate(new Date());
     //send code to employee
 
@@ -53,7 +31,7 @@ export async function createEmployee(req, res, next) {
       }),
     });
 
-    res.status(201).json({
+    return res.status(201).json({
       success: true,
       message: "Employee created successfully",
       data: employee,
@@ -93,7 +71,7 @@ export async function getEmployeeById(req, res, next) {
       return res.status(404).json({ message: "Employee not found" });
     }
 
-    res.json({
+    return res.json({
       success: true,
       message: "Employee fetched successfully",
       data: employee,
@@ -119,7 +97,7 @@ export async function updateEmployeeById(req, res, next) {
       return res.status(404).json({ message: "Employee not found" });
     }
 
-    res.json({
+    return res.json({
       success: true,
       message: "Employee updated successfully",
       data: emp,
@@ -143,7 +121,7 @@ export async function deleteEmployeeById(req, res, next) {
       return res.status(404).json({ message: "Employee not found" });
     }
 
-    res.json({
+    return res.json({
       success: true,
       message: "Employee deleted successfully",
       data: emp,

@@ -9,8 +9,9 @@ export const SalaryStructureSchema = z.object({
       (id) => mongoose.Types.ObjectId.isValid(id),
       "Invalid MongoDB ObjectId"
     ),
-  month: z.number().min(1).max(12),
-  year: z.number().min(2000),
+  name: z.string(),
+  month: z.number().min(1).max(12).optional(),
+  year: z.number().min(2000).optional(),
   basicPay: z.number().min(0),
   HRA: z.number().min(0).optional(),
   specialAllowance: z.number().min(0).optional(),

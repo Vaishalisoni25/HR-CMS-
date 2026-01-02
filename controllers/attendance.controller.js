@@ -90,7 +90,7 @@ export async function markAttendance(req, res) {
 
 export async function getAttendance(req, res, _next) {
   try {
-    const { month, year } = req.body;
+    const { month, year } = req.query;
     const employeeId = req.params.id;
 
     if (!employeeId) {
@@ -113,7 +113,7 @@ export async function getAttendance(req, res, _next) {
     let paidLeaveCount = 0;
 
     attendanceRecords.forEach((r) => {
-      if (r.status === "") {
+      if (r.status === ATTENDANCE_STATUSES.LEAVE) {
         leaveCount++;
         if (r.isPaidLeave) paidLeaveCount++;
       }
