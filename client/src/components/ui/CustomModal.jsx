@@ -7,9 +7,12 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogActions from '@mui/material/DialogActions';
 import CustomButton from './CustomButton';
 
-const CustomModal = ({ open, onClose, title, children, actions = [] }) => {
+const CustomModal = ({ open, onClose, title, children, actions = [], PaperProps}) => {
   return (
-    <Dialog open={open} onClose={onClose}>
+    <Dialog 
+    open={open} 
+    onClose={onClose} 
+    PaperProps={PaperProps}>
       {title && <DialogTitle>{title}</DialogTitle>}
       <DialogContent>{children}</DialogContent>
       {actions.length > 0 && (

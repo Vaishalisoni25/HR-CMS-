@@ -22,14 +22,16 @@ const FormModal = ({
   submitText = "Submit",
   cancelText = "Cancel",
   children,
+  maxWidth = "md",
 }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (onSubmit) onSubmit();
+     e.stopPropagation();
+    if (onSubmit) onSubmit(e);
   };
 
   return (
-    <Dialog open={open} onClose={onClose} fullWidth maxWidth="md" className="my-dialog">
+    <Dialog open={open} onClose={onClose} fullWidth maxWidth={maxWidth} className="my-dialog">
       <DialogTitle className="my-dialog-title">
         <Box display="flex" flexDirection="column" alignItems="flex-start" gap={1}>
           <Box display="flex" alignItems="center" gap={1}>

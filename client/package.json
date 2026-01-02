@@ -43,9 +43,10 @@
     "react": "19.1.0",
     "react-apexcharts": "1.7.0",
     "react-dom": "19.1.0",
-    "react-hook-form": "7.57.0",
+    "react-hook-form": "^7.57.0",
     "react-redux": "^9.2.0",
     "sass": "^1.94.2",
+    "yup": "^1.7.1",
     "zod": "3.25.57"
   },
   "devDependencies": {

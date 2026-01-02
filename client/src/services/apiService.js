@@ -1,14 +1,14 @@
 import axios from 'axios';
 
 export const axiosInstance = axios.create({
-  baseURL: 'http://localhost:8000/api',
+  baseURL: 'http://localhost:8001/api',
   headers: { 'Content-Type': 'application/json' },
 });
 
 export const request = async ({ url, method, data, contentType, responseType = 'json' }) => {
   try {
     const headers = {
-      Authorization: `Bearer ${localStorage.getItem('token') || ''}`,
+      Authorization: `${localStorage.getItem('token') || ''}`,
       ...(contentType && { 'Content-Type': contentType }),
     };
 

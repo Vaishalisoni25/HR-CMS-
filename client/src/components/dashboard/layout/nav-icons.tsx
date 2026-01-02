@@ -5,6 +5,8 @@ import { PlugsConnectedIcon } from '@phosphor-icons/react/dist/ssr/PlugsConnecte
 import { UserIcon } from '@phosphor-icons/react/dist/ssr/User';
 import { UsersIcon } from '@phosphor-icons/react/dist/ssr/Users';
 import { XSquare } from '@phosphor-icons/react/dist/ssr/XSquare';
+import { Wallet } from '@phosphor-icons/react/dist/ssr/Wallet';
+import { SlidersHorizontal } from '@phosphor-icons/react/dist/ssr/SlidersHorizontal';
 
 export const navIcons = {
   'chart-pie': ChartPieIcon,
@@ -13,4 +15,6 @@ export const navIcons = {
   'x-square': XSquare,
   user: UserIcon,
   users: UsersIcon,
+  wallet: Wallet,
+  sliders: SlidersHorizontal,
 } as Record<string, Icon>;
