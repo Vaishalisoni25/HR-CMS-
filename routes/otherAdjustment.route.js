@@ -23,7 +23,12 @@ router.post(
 );
 router.get("/", auth([ROLES.HR, ROLES.SUPERADMIN]), getAllAdjustment);
 router.get("/:id", auth([ROLES.HR, ROLES.SUPERADMIN]), getAdjustmentById);
-router.patch("/:id", auth([ROLES.HR, ROLES.SUPERADMIN]), updateAdjustmentById);
+router.patch(
+  "/:id",
+  auth([ROLES.HR, ROLES.SUPERADMIN]),
+  upload.single("image"),
+  updateAdjustmentById
+);
 router.delete("/:id", auth([ROLES.HR, ROLES.SUPERADMIN]), deleteAdjustmentById);
 
 export default router;
