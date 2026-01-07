@@ -6,10 +6,11 @@ export const axiosInstance = axios.create({
 });
 
 export const request = async ({ url, method, data, contentType, responseType = 'json' }) => {
+  console.log(contentType,'contentType')
   try {
     const headers = {
       Authorization: `${localStorage.getItem('token') || ''}`,
-      ...(contentType && { 'Content-Type': contentType }),
+      ...(contentType && { 'Content-Type': contentType==='formData'?'multipart/form-data' : contentType, }),
     };
 
     const response = await axiosInstance({
@@ -30,38 +31,25 @@ export const request = async ({ url, method, data, contentType, responseType = '
 
     if (axios.isAxiosError(error)) {
       const status = error.response?.status;
-
-      if (error.response) {
-        let message = 'Request failed';
-
-        switch (status) {
-          case 400:
-            message = 'Invalid request. Please check your input.';
-            break;
-          case 401:
-            message = 'Unauthorized. Please login again.';
-            break;
-          case 403:
-            message = 'You do not have permission to perform this action.';
-            break;
-          case 404:
-            message = 'Requested resource not found.';
-            break;
-          case 409:
-            message = 'Conflict. Data already exists.';
-            break;
-          case 422:
-            message = 'Validation failed. Please check the form.';
-            break;
-          case 500:
-            message = 'Server error. Please try again later.';
-            break;
-          default:
-            message =
-              error.response.data?.message ||
-              error.response.data?.error ||
-              'Something went wrong';
-        }
+      const serverMessage = error.response?.data?.message || error.response?.data?.error;
+      // Use server message 
+      let message =
+        serverMessage ||
+        (status === 400
+          ? 'Invalid request. Please check your input.'
+          : status === 401
+          ? 'Unauthorized. Please login again.'
+          : status === 403
+          ? 'You do not have permission to perform this action.'
+          : status === 404
+          ? 'Requested resource not found.'
+          : status === 409
+          ? 'Conflict. Data already exists.'
+          : status === 422
+          ? 'Validation failed. Please check the form.'
+          : status === 500
+          ? 'Server error. Please try again later.'
+          : 'Something went wrong');
 
         throw {
           success: false,
@@ -80,13 +68,7 @@ export const request = async ({ url, method, data, contentType, responseType = '
 
       throw {
         success: false,
-        message: error.message,
+        message: error.message || "Unexpected error occured",
       };
     }
-
-    throw {
-      success: false,
-      message: 'Unexpected error occurred',
-    };
-  }
 };

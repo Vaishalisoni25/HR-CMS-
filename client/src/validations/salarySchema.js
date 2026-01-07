@@ -10,6 +10,10 @@ export const salarySchema = yup.object({
     .required("Salary is required"),
   dateRange: yup.object({
     startDate: yup.date().nullable().required("Start date is required"),
-    endDate: yup.date().nullable().required("End date is required"),
-  }),
+    endDate: yup.date().nullable().required("End date is required").min(
+          yup.ref("startDate"),
+          "End date cannot be before start date"
+        ),
+  })
+  .required("Date range is required"),
 });

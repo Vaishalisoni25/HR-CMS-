@@ -21,12 +21,13 @@ const FormModal = ({
   onSubmit,
   submitText = "Submit",
   cancelText = "Cancel",
+  isSubmitting,
   children,
   maxWidth = "md",
 }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
-     e.stopPropagation();
+    e.stopPropagation();
     if (onSubmit) onSubmit(e);
   };
 
@@ -41,10 +42,10 @@ const FormModal = ({
             </Typography>
           </Box>
           {subtitle && (
-          <Typography fontSize="0.875rem" color="text.secondary">
-            {subtitle}
-          </Typography>
-           )}
+            <Typography fontSize="0.875rem" color="text.secondary">
+              {subtitle}
+            </Typography>
+          )}
         </Box>
       </DialogTitle>
       <form onSubmit={handleSubmit}>
@@ -56,7 +57,8 @@ const FormModal = ({
         <DialogActions className="my-dialog-actions">
           <Button onClick={onClose}>{cancelText}</Button>
           <Button type="submit" variant="contained" color="primary">
-            {submitText}
+            {/* {submitText} */}
+            {isSubmitting ? "Saving..." : submitText}
           </Button>
         </DialogActions>
       </form>

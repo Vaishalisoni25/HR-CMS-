@@ -1,166 +1,216 @@
 'use client';
 
-import React from "react";
+import React, { useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { Stack, Button, MenuItem, Card, Box, IconButton, Typography } from "@mui/material";
-import CustomSelect from "@/components/ui/CustomSelect";
-import CustomTextField from "@/components/ui/CustomTextField";
-import CustomTextArea from "@/components/ui/CustomTextArea";
-import CustomRadioGroup from "@/components/ui/CustomRadioGroup";
-import { adjustmentSchema } from "@/validations/adjustmentValidationSchema"; // Yup schema
+import { Stack, Card } from "@mui/material";
+
+import GlobalInput from "@/components/ui/GlobalInput";
 import ImageUploadField from "@/components/ui/ImageUploadField";
+import { adjustmentSchema } from "@/validations/adjustmentValidationSchema";
 
-export default function AdjustmentForm({ employees = [], onSubmit, onFormSubmitRef }) {
-    const {
-        control,
-        handleSubmit,
-        formState: { errors },
-        reset,
-    } = useForm({
-        resolver: yupResolver(adjustmentSchema),
-        defaultValues: {
-            employee: "",
-            month: "",
-            year: "",
-            amount: "",
-            type: "add",
-            description: "",
-            image: null,
-        },
-         mode: "onSubmit",
-    });
+export default function AdjustmentForm({
+  employees = [],
+  onSubmit,
+  onFormSubmitRef,
+  initialValues = null,
+  isEditMode = false,
+}) {
+  const {
+    control,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm({
+    resolver: yupResolver(adjustmentSchema),
+    defaultValues: {
+      employee: "",
+      month: "",
+      year: "",
+      amount: "",
+      type: "add",
+      description: "",
+      image: null,
+    },
+    mode: "onSubmit",
+  });
 
-    const months = [
-        "January", "February", "March", "April", "May", "June",
-        "July", "August", "September", "October", "November", "December"
-    ];
+  useEffect(() => {
+    if (isEditMode && initialValues) {
+      reset({
+        employee: initialValues.employeeId,
+        month: initialValues.month,
+        year: initialValues.year,
+        amount: initialValues.amount,
+        type: initialValues.type.toLowerCase(),
+        description: initialValues.description || "",
+        image: initialValues.image || null,
+      });
+    }
+  }, [isEditMode, initialValues, reset]);
 
-    const currentYear = new Date().getFullYear();
-    const years = Array.from({ length: 10 }, (_, i) => currentYear - i);
+  const months = [
+    { value: 1, label: "January" },
+    { value: 2, label: "February" },
+    { value: 3, label: "March" },
+    { value: 4, label: "April" },
+    { value: 5, label: "May" },
+    { value: 6, label: "June" },
+    { value: 7, label: "July" },
+    { value: 8, label: "August" },
+    { value: 9, label: "September" },
+    { value: 10, label: "October" },
+    { value: 11, label: "November" },
+    { value: 12, label: "December" },
+  ];
 
-    const onFormSubmit = (data) => {
-        console.log("Adjustment Form Data:", data);
-        if (onSubmit) onSubmit(data);
-        reset();
+  const currentYear = new Date().getFullYear();
+  const years = Array.from({ length: 10 }, (_, i) => ({
+    value: currentYear - i,
+    label: (currentYear - i).toString(),
+  }));
+
+  const onFormSubmit = (data) => {
+    const payload = {
+      employeeId: data.employee,
+      month: data.month,
+      year: data.year,
+      type: data.type.toUpperCase(),
+      amount: data.amount,
+      description: data.description,
+      image: data.image,
     };
 
+    onSubmit?.(payload, reset);
+  };
+
+  useEffect(() => {
     if (onFormSubmitRef) {
-        onFormSubmitRef.current = handleSubmit(onFormSubmit);
+      onFormSubmitRef.current = handleSubmit(onFormSubmit);
     }
+  }, [onFormSubmitRef, handleSubmit]);
 
-    return (
-        <Card sx={{ p: 4, borderRadius: 3, boxShadow: 3 }}>
-           
-                <Stack spacing={2}>
+  return (
+    <Card sx={{ p: 4, borderRadius: 3, boxShadow: 3 }}>
+      <Stack spacing={2}>
 
-                    {/* Employee */}
-                    <Stack direction="row" spacing={2}>
-                        <Stack sx={{ flex: 1 }}>
-                            <Controller
-                                name="employee"
-                                control={control}
-                                render={({ field }) => (
-                                    <CustomSelect
-                                        {...field}
-                                        label="Employee"
-                                        options={employees.map(emp => ({
-                                            value: emp.id || emp._id,
-                                            label: emp.name
-                                        }))}
-                                        errorMessage={errors.employee?.message}
-                                    />
-                                )}
-                            />
-                        </Stack>
-                        {/* Amount */}
-                        <Stack sx={{ flex: 1 }}>
-                            <Controller
-                                name="amount"
-                                control={control}
-                                render={({ field }) => (
-                                    <CustomTextField
-                                        {...field}
-                                        label="Amount"
-                                        type="number"
-                                        errorMessage={errors.amount?.message}
-                                    />
-                                )}
-                            />
-                        </Stack>
-                    </Stack>
+        {/* Employee + Amount */}
+        <Stack direction="row" spacing={2}>
+          <Stack sx={{ flex: 1 }}>
+            <Controller
+              name="employee"
+              control={control}
+              render={({ field }) => (
+                <GlobalInput
+                  type="select"
+                  label="Employee"
+                  value={field.value}
+                  onChange={field.onChange}
+                  options={employees.map(emp => ({
+                    value: emp._id,
+                    label: emp.name,
+                  }))}
+                  errorMessage={errors.employee?.message}
+                />
+              )}
+            />
+          </Stack>
 
-                    {/* Year */}
-                    <Stack direction="row" spacing={2}>
-                        <Stack sx={{ flex: 1 }}>
-                            {/* Month */}
-                            <Controller
-                                name="month"
-                                control={control}
-                                render={({ field }) => (
-                                    <CustomSelect
-                                        {...field}
-                                        label="Month"
-                                        options={months.map(m => ({ value: m, label: m }))}
-                                        errorMessage={errors.month?.message}
-                                    />
-                                )}
-                            />
-                        </Stack>
-                        <Stack sx={{ flex: 1 }}>
-                            <Controller
-                                name="year"
-                                control={control}
-                                render={({ field }) => (
-                                    <CustomSelect
-                                        {...field}
-                                        label="Year"
-                                        options={years.map(y => ({ value: y, label: y.toString() }))}
-                                        errorMessage={errors.year?.message}
-                                    />
-                                )}
-                            />
-                        </Stack>
-                    </Stack>
+          <Stack sx={{ flex: 1 }}>
+            <Controller
+              name="amount"
+              control={control}
+              render={({ field }) => (
+                <GlobalInput
+                  type="text"
+                  label="Amount"
+                  value={field.value}
+                  onChange={field.onChange}
+                  errorMessage={errors.amount?.message}
+                />
+              )}
+            />
+          </Stack>
+        </Stack>
 
-                    {/* Add / Less */}
-                    <Controller
-                        name="type"
-                        control={control}
-                        render={({ field }) => (
-                            <CustomRadioGroup
-                                // label="Add / Less"
-                                options={[
-                                    { label: "Add", value: "add" },
-                                    { label: "Less", value: "less" },
-                                ]}
-                                value={field.value || ""}
-                                onChange={(e) => field.onChange(e.target.value)}
-                                row={true}
-                            />
-                        )}
-                    />
+        {/* Month + Year */}
+        <Stack direction="row" spacing={2}>
+          <Stack sx={{ flex: 1 }}>
+            <Controller
+              name="month"
+              control={control}
+              render={({ field }) => (
+                <GlobalInput
+                  type="select"
+                  label="Month"
+                  value={field.value}
+                  onChange={field.onChange}
+                  options={months}
+                  errorMessage={errors.month?.message}
+                />
+              )}
+            />
+          </Stack>
 
-                    {/* Description */}
-                    <Controller
-                        name="description"
-                        control={control}
-                        render={({ field }) => (
-                            <CustomTextArea
-                                {...field}
-                                label="Description"
-                                rows={4}
-                                errorMessage={errors.description?.message} 
-                            />
-                        )}
-                    />
+          <Stack sx={{ flex: 1 }}>
+            <Controller
+              name="year"
+              control={control}
+              render={({ field }) => (
+                <GlobalInput
+                  type="select"
+                  label="Year"
+                  value={field.value}
+                  onChange={field.onChange}
+                  options={years}
+                  errorMessage={errors.year?.message}
+                />
+              )}
+            />
+          </Stack>
+        </Stack>
 
-                    <ImageUploadField
-                        name="image"
-                        control={control}
-                        label="Upload Image"
-                    />
-                </Stack>
-        </Card>
-    );
+        {/* Add / Less */}
+        <Controller
+          name="type"
+          control={control}
+          render={({ field }) => (
+            <GlobalInput
+              type="radio"
+              value={field.value}
+              onChange={field.onChange}
+              options={[
+                { label: "Add", value: "add" },
+                { label: "Less", value: "less" },
+              ]}
+              errorMessage={errors.type?.message}
+            />
+          )}
+        />
+
+        {/* Description */}
+        <Controller
+          name="description"
+          control={control}
+          render={({ field }) => (
+            <GlobalInput
+              type="textarea"
+              label="Description"
+              value={field.value}
+              onChange={field.onChange}
+              rows={4}
+              errorMessage={errors.description?.message}
+            />
+          )}
+        />
+
+        <ImageUploadField
+          name="image"
+          control={control}
+          label="Upload Image"
+        />
+
+      </Stack>
+    </Card>
+  );
 }

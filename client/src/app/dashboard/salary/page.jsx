@@ -15,11 +15,12 @@ import ConfirmationDialog from "@/components/ui/ConfirmationDialog";
 
 export default function SalaryPage() {
   const dispatch = useDispatch();
-  const employees = useSelector((state) => state.employees.list || []);
-  const loadingEmployees = useSelector((state) => state.employees.loading);
+  const employees = useSelector((state) => state.employees?.list || []);
+  const loadingEmployees = useSelector((state) => state.employees?.loading);
 
-  const salaries = useSelector((state) => state.salaries.list || []);
-  const loadingSalaries = useSelector((state) => state.salaries.loading);
+  const salaries = useSelector((state) => state.salaries?.list || []);
+  const loadingSalaries = useSelector((state) => state.salaries?.loading);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const [openAddModal, setOpenAddModal] = useState(false);
 
@@ -38,7 +39,7 @@ export default function SalaryPage() {
   const [editSalaryId, setEditSalaryId] = useState(null);
 
   const editSalaryData = useMemo(() => {
-    return salaries.find(s => s._id === editSalaryId);
+    return salaries?.find(s => s?._id === editSalaryId);
   }, [editSalaryId, salaries]);
 
   const [confirmDialog, setConfirmDialog] = useState({
@@ -46,23 +47,40 @@ export default function SalaryPage() {
     row: null,
   });
 
+  const showSnackbar = (message, severity = "success") => {
+    setSnackbar({ open: true, message, severity });
+  };
 
+  const filteredSalaries = useMemo(() => {
+    if (!searchQuery) return salaries;
+
+    return salaries.filter((salary) => {
+      const employeeName = employees.find(e => e._id === salary.employeeId)?.name || "";
+      return (
+        employeeName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (salary.employeeName || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (salary.description || "").toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    });
+  }, [searchQuery, salaries, employees]);
+
+  // Fetch employees and salaries
+  const fetchAllData = async () => {
+    try {
+      await Promise.all([
+        dispatch(fetchEmployees()).unwrap(),
+        dispatch(fetchSalaries()).unwrap(),
+      ]);
+    } catch (err) {
+      console.error("Error fetching data:", err);
+      showSnackbar(err.message || "Failed to load employees and salaries", "error");
+    }
+  };
+
+  // Call fetch on component mount
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        await dispatch(fetchEmployees()).unwrap();
-        await dispatch(fetchSalaries()).unwrap();
-      } catch (err) {
-        console.error("Error fetching data:", err);
-        setSnackbar({
-          open: true,
-          message: err.message || "Failed to load employees or salaries",
-          severity: "error",
-        });
-      }
-    };
-    fetchData();
-  }, [dispatch]);
+    fetchAllData();
+  }, []);
 
   useEffect(() => {
     if (!loadingEmployees) {
@@ -73,64 +91,29 @@ export default function SalaryPage() {
   const handleSubmitSalary = async (payload) => {
     const { employeeId, basicPay, startMonth, endMonth } = payload;
 
-    if (!employeeId)
-      return setSnackbar({ open: true, message: "Please select an employee", severity: "error" });
-
-    if (!basicPay || basicPay <= 0)
-      return setSnackbar({ open: true, message: "Please enter a valid salary", severity: "error" });
-
-    if (!startMonth || !endMonth)
-      return setSnackbar({ open: true, message: "Please select a valid date range", severity: "error" });
-
     if (addingSalary) return;
 
     setAddingSalary(true);
 
     try {
-      const employee = employees.find(e => e._id === employeeId);
+      const employee = employees?.find(e => e?._id === employeeId);
       if (!employee) throw new Error("Selected employee not found");
 
-      const payloadWithName = {
-        ...payload,
-        employeeName: employee.name,
-      };
+      const finalPayload = { ...payload, employeeName: employee.name };
 
-      if (editSalaryId) {
-        // UPDATE
-        await dispatch(
-          updateSalary({
-            id: editSalaryId,
-            data: payloadWithName,
-          })
-        ).unwrap();
+      const action = editSalaryId
+        ? updateSalary({ id: editSalaryId, data: finalPayload })
+        : addSalary(finalPayload);
 
-        setSnackbar({
-          open: true,
-          message: "Salary updated successfully!",
-          severity: "success",
-        });
-      } else {
-        // ADD
-        await dispatch(
-          addSalary(payloadWithName)
-        ).unwrap();
+      await dispatch(action).unwrap();
 
-        setSnackbar({
-          open: true,
-          message: "Salary added successfully!",
-          severity: "success",
-        });
-      }
+      showSnackbar(editSalaryId ? "Salary updated successfully!" : "Salary added successfully!");
 
       setOpenAddModal(false);
       setEditSalaryId(null);
       dispatch(fetchSalaries());
     } catch (err) {
-      setSnackbar({
-        open: true,
-        message: err.message || "Something went wrong",
-        severity: "error",
-      });
+      showSnackbar(err?.message || "Something went wrong", "error");
     } finally {
       setAddingSalary(false);
     }
@@ -145,26 +128,17 @@ export default function SalaryPage() {
     setConfirmDialog({ open: true, row });
   };
   const handleConfirmDelete = async () => {
-    if (!confirmDialog.row?._id) return;
+    if (!confirmDialog?.row?._id) return;
 
     try {
-      const result = await dispatch(deleteSalary({ id: confirmDialog.row._id })).unwrap();
+      const result = await dispatch(deleteSalary({ id: confirmDialog.row._id }))?.unwrap();
       console.log("Delete result:", result);
-
-      setSnackbar({
-        open: true,
-        message: `Salary for ${confirmDialog.row.employeeName} deleted successfully!`,
-        severity: "success",
-      });
+      showSnackbar(`Salary for ${confirmDialog.row?.employeeName} deleted successfully!`);
 
       dispatch(fetchSalaries());
     } catch (err) {
       console.error("Delete error:", err);
-      setSnackbar({
-        open: true,
-        message: err.message || "Failed to delete salary",
-        severity: "error",
-      });
+      showSnackbar(err?.message || "Failed to delete salary", "error");
     } finally {
       setConfirmDialog({ open: false, row: null });
     }
@@ -189,9 +163,14 @@ export default function SalaryPage() {
           Add Salary
         </Button>
       </Stack>
-      <SearchInput />
+      <SearchInput
+        value={searchQuery}
+        onChange={(e) => setSearchQuery(e.target.value)}
+        placeholder="Search by employee"
+      />
       <SalaryTable
-        rows={salaries}
+        // rows={salaries}
+        rows={filteredSalaries}
         employees={employees}
         loading={loadingSalaries}
         onEdit={handleEditSalary}

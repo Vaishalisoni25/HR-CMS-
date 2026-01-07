@@ -17,6 +17,7 @@ const ConfirmationDialog = ({
   onConfirm,
   confirmText = "Yes",
   cancelText = "No",
+  isDeleting,
 }) => {
   return (
     <Dialog
@@ -33,7 +34,8 @@ const ConfirmationDialog = ({
       </DialogContent>
       <DialogActions>
         <Button onClick={() => onClose(false)} color="primary">
-          {cancelText}
+          {/* {cancelText} */}
+          {isDeleting ? "Deleting..." : confirmText}
         </Button>
         <Button
           onClick={() => {

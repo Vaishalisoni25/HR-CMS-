@@ -6,6 +6,7 @@ export const navItems = [
   { key: 'employees', title: 'Employees', href: paths.dashboard.employees, icon: 'users' },
    { key: 'salary', title: 'Salary', href: paths.dashboard.salary, icon: 'wallet' },
    { key: 'adjustments', title: 'Adjustments', href: paths.dashboard.adjustments, icon: 'sliders' },
+    { key: 'attendance', title: 'Attendance', href: paths.dashboard.attendance, icon: 'calendar-check' },
   // { key: 'integrations', title: 'Integrations', href: paths.dashboard.integrations, icon: 'plugs-connected' },
   { key: 'settings', title: 'Settings', href: paths.dashboard.settings, icon: 'gear-six' },
   { key: 'account', title: 'Profile', href: paths.dashboard.account, icon: 'user' },

@@ -1,6 +1,7 @@
 import React from 'react';
 import TextField from '@mui/material/TextField';
 import Box from '@mui/material/Box';
+import { Typography } from '@mui/material';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { LocalizationProvider, DatePicker } from '@mui/x-date-pickers';
 
@@ -11,6 +12,8 @@ const DateRangePicker = ({
   minDate,
   maxDate,
   disabled = false,
+  error = false,
+  helperText = '',
 }) => {
   const handleStartDateChange = (date) => {
     // Ensure startDate is not after endDate
@@ -32,6 +35,7 @@ const DateRangePicker = ({
 
   return (
     <LocalizationProvider dateAdapter={AdapterDateFns}>
+      <Box sx={{ display: 'flex', gap: 2, flexDirection: 'column' }}>
       <Box sx={{ display: 'flex', gap: 2 }}>
         <DatePicker
           label="Start Date"
@@ -40,7 +44,7 @@ const DateRangePicker = ({
           minDate={minDate}
           maxDate={maxDate}
           disabled={disabled}
-          renderInput={(params) => <TextField {...params} fullWidth />}
+          renderInput={(params) => <TextField {...params} fullWidth error={error} />}
         />
         <DatePicker
           label="End Date"
@@ -49,8 +53,14 @@ const DateRangePicker = ({
           minDate={minDate}
           maxDate={maxDate}
           disabled={disabled}
-          renderInput={(params) => <TextField {...params} fullWidth />}
+          renderInput={(params) => <TextField {...params} fullWidth error={error} />}
         />
+      </Box>
+       {error && helperText && (
+          <Typography variant="caption" color="error">
+            {helperText}
+          </Typography>
+        )}
       </Box>
     </LocalizationProvider>
   );

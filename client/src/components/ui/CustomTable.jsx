@@ -17,20 +17,28 @@ import {
   Typography,
 } from '@mui/material';
 import { useSelection } from '@/hooks/use-selection';
+import TableLoading from '@/components/ui/TableLoading';
+import TableEmpty from '@/components/ui/TableEmpty';
 
 const noop = () => { };
 
-export function CustomTable({
-  columns = [],
-  rows = [],
-  count = 0,
-  page = 0,
-  rowsPerPage = 5,
-  onPageChange = () => { },
-  onRowsPerPageChange = () => { },
-  loading = false,
-}) {
-  const rowIds = useMemo(() => rows.map((row) => row.id), [rows]);
+export function CustomTable(props) {
+  const {
+    columns,
+    rows,
+    rowKey,
+    count,
+    page,
+    rowsPerPage,
+    onPageChange,
+    onRowsPerPageChange,
+    loading,
+  } = props;
+
+  const rowIds = useMemo(
+    () => rows.map((row) => row[rowKey]),
+    [rows, rowKey]
+  );
   const { selectAll, deselectAll, selectOne, deselectOne, selected } = useSelection(rowIds);
 
   const selectedCount = selected.size;
@@ -65,34 +73,25 @@ export function CustomTable({
           </TableHead>
 
           <TableBody>
-            {loading ? (
-              <TableRow>
-                <TableCell colSpan={columns.length + 1} align="center">
-                  <Stack alignItems="center" py={3}>
-                    <CircularProgress size={24} />
-                    <Typography variant="body2" color="text.secondary" mt={1}>
-                      Loading...
-                    </Typography>
-                  </Stack>
-                </TableCell>
-              </TableRow>
-            ) : rows.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={columns.length + 1} align="center">
-                  <Typography variant="body2" color="text.secondary">
-                    No data found
-                  </Typography>
-                </TableCell>
-              </TableRow>
-            ) : (
+            {loading && (
+              <TableLoading colSpan={columns.length + 1} />
+            )}
+
+            {!loading && rows.length === 0 && (
+              <TableEmpty
+                colSpan={columns.length + 1}
+                text="No data found"
+              />
+            )}
+            {!loading &&
               rows.map((row) => {
-                const isSelected = selected.has(row.id);
+                const isSelected = selected.has(row[rowKey]);
                 return (
-                  <TableRow key={row.id} hover selected={isSelected}>
+                  <TableRow key={row[rowKey]} hover selected={isSelected}>
                     <TableCell padding="checkbox">
                       <Checkbox
                         checked={isSelected}
-                        onChange={(e) => handleSelectOne(row.id, e.target.checked)}
+                        onChange={(e) => handleSelectOne(row[rowKey], e.target.checked)}
                       />
                     </TableCell>
                     {columns.map((col) => (
@@ -102,8 +101,8 @@ export function CustomTable({
                     ))}
                   </TableRow>
                 );
-              })
-            )}
+              }
+              )}
           </TableBody>
         </Table>
       </Box>
@@ -122,3 +121,15 @@ export function CustomTable({
     </Card>
   );
 }
+
+CustomTable.defaultProps = {
+  columns: [],
+  rows: [],
+  rowKey: 'id',
+  count: 0,
+  page: 0,
+  rowsPerPage: 5,
+  onPageChange: () => { },
+  onRowsPerPageChange: () => { },
+  loading: false,
+};

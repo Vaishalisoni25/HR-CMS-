@@ -7,7 +7,7 @@ const createApiThunk = (type, apiConfigFn) => {
     try {
       const { snackbar, ...rest } = arg || {};
       const config = apiConfigFn(rest);
-
+console.log(config,'config')
       const response = await request({
         url: config.url,
         method: config.method,
@@ -27,6 +27,7 @@ const createApiThunk = (type, apiConfigFn) => {
       if (arg?.snackbar) {
         snackbar(error.message || 'Something went wrong', 'error');
       }
+     
       return rejectWithValue(error);
     }
   });

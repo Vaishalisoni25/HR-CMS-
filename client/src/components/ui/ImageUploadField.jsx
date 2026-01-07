@@ -4,6 +4,7 @@ import React, { useRef } from 'react';
 import { Box, Typography } from '@mui/material';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import { Controller } from 'react-hook-form';
+import './styles.scss'; 
 
 const ImageUploadField = ({
   name,
@@ -15,44 +16,27 @@ const ImageUploadField = ({
   const inputRef = useRef(null);
 
   return (
-    <Controller
+     <Controller
       name={name}
       control={control}
       render={({ field }) => (
-        <Box>
-          {/* Label */}
-          <Typography variant="subtitle2" sx={{ mb: 1 }}>
+        <div className="image-upload-field">
+          
+          <Typography variant="subtitle2" className="upload-label">
             {label}
           </Typography>
 
-          {/* Upload Box */}
-          <Box
-            onClick={() => inputRef.current?.click()}
-            sx={{
-              border: '2px dashed',
-              borderColor: 'divider',
-              borderRadius: 2,
-              p: 3,
-              textAlign: 'center',
-              cursor: 'pointer',
-              transition: '0.2s',
-              '&:hover': {
-                borderColor: 'primary.main',
-                backgroundColor: 'action.hover',
-              },
-            }}
-          >
-            <CloudUploadIcon color="primary" sx={{ fontSize: 40 }} />
+          <div className="upload-box" onClick={() => inputRef.current?.click()}>
+            <CloudUploadIcon className="upload-icon" />
 
-            <Typography variant="body2" sx={{ mt: 1 }}>
+            <Typography variant="body2" className="upload-text">
               Click to upload image
             </Typography>
 
-            <Typography variant="caption" color="text.secondary">
+            <Typography variant="caption" className="upload-caption">
               PNG, JPG, JPEG
             </Typography>
 
-            {/* Hidden Input */}
             <input
               ref={inputRef}
               type="file"
@@ -63,20 +47,19 @@ const ImageUploadField = ({
 
             {/* Preview */}
             {field.value && (
-              <Box
-                component="img"
-                src={URL.createObjectURL(field.value)}
+              <img
+                src={
+                  field.value instanceof File
+                    ? URL.createObjectURL(field.value)
+                    : field.value
+                }
                 alt="Preview"
-                sx={{
-                  mt: 2,
-                  maxHeight: height,
-                  borderRadius: 2,
-                  objectFit: 'cover',
-                }}
+                className="preview-image"
+                style={{ maxHeight: height }} 
               />
             )}
-          </Box>
-        </Box>
+          </div>
+        </div>
       )}
     />
   );

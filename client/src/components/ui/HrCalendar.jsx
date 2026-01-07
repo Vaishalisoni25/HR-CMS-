@@ -30,7 +30,6 @@ const HRCalendar = () => {
   const [openModal, setOpenModal] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
    const [selectedEventId, setSelectedEventId] = useState(null);
-//   const [selectedDate, setSelectedDate] = useState('');
   const [newEvent, setNewEvent] = useState({
     title: '',
     date: '',
@@ -40,8 +39,6 @@ const HRCalendar = () => {
 
   // Handle clicking a date
   const handleDateClick = (info) => {
-    // setSelectedDate(info.dateStr);
-    // setNewEvent({ ...newEvent, date: info.dateStr });
     setIsEditing(false);
     setSelectedEventId(null);
     setNewEvent({ title: '', date: info.dateStr, color: '', description: '' });
@@ -67,7 +64,6 @@ const HRCalendar = () => {
   // Handle input changes
   const handleChange = (e) => {
     const { name, value } = e.target;
-    // setNewEvent({ ...newEvent, [name]: value });
     setNewEvent((prev) => ({ ...prev, [name]: value }));
 
   if (name === 'title') {
@@ -78,14 +74,6 @@ const HRCalendar = () => {
   }
   };
 
-  // Add new event
-//   const handleAddEvent = () => {
-//     if (!newEvent.title || !newEvent.date) return alert('Please select event type and date');
-//     setEvents([...events, newEvent]);
-//     setNewEvent({ title: '', date: '', color: '', description: '' });
-//     setOpenModal(false);
-//   };
-
 // Add new event
   const handleAddEvent = () => {
     if (!newEvent.title || !newEvent.date)
@@ -94,7 +82,6 @@ const HRCalendar = () => {
     const newItem = {
       id: Date.now().toString(),
       title: newEvent.title,
-      // date: newEvent.date,
       start: newEvent.date,
       backgroundColor: newEvent.color,
       description: newEvent.description,
@@ -177,7 +164,6 @@ const HRCalendar = () => {
               <MenuItem
                 key={type.label}
                 value={type.label}
-                // onClick={() => setNewEvent({ ...newEvent, color: type.color })}
               >
                 {type.label}
               </MenuItem>

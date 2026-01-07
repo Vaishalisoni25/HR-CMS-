@@ -7,6 +7,7 @@ import { UsersIcon } from '@phosphor-icons/react/dist/ssr/Users';
 import { XSquare } from '@phosphor-icons/react/dist/ssr/XSquare';
 import { Wallet } from '@phosphor-icons/react/dist/ssr/Wallet';
 import { SlidersHorizontal } from '@phosphor-icons/react/dist/ssr/SlidersHorizontal';
+import { CalendarCheck } from '@phosphor-icons/react/dist/ssr/CalendarCheck';
 
 export const navIcons = {
   'chart-pie': ChartPieIcon,
@@ -17,4 +18,5 @@ export const navIcons = {
   users: UsersIcon,
   wallet: Wallet,
   sliders: SlidersHorizontal,
+  'calendar-check': CalendarCheck,
 } as Record<string, Icon>;

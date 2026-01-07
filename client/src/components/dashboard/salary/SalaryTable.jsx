@@ -85,7 +85,8 @@ export default function SalaryTable({ rows=[], employees=[], onEdit, onDelete })
   return (
     <CustomTable
       columns={columns}
-      rows={paginatedRows}       
+      rows={paginatedRows} 
+      rowKey="_id"       
       count={mappedRows.length}   
       page={page}
       rowsPerPage={rowsPerPage}
