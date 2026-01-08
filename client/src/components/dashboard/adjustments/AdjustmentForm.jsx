@@ -70,6 +70,49 @@ export default function AdjustmentForm({
     label: (currentYear - i).toString(),
   }));
 
+  const optionsMap = {
+    employees: employees.map(emp => ({
+      value: emp._id,
+      label: emp.name,
+    })),
+    months,
+    years,
+  };
+
+  const formRows = [
+    {
+      fields: [
+        {
+          name: "employee",
+          label: "Employee",
+          type: "select",
+          optionsKey: "employees",
+        },
+        {
+          name: "amount",
+          label: "Amount",
+          type: "text",
+        },
+      ],
+    },
+    {
+      fields: [
+        {
+          name: "month",
+          label: "Month",
+          type: "select",
+          optionsKey: "months",
+        },
+        {
+          name: "year",
+          label: "Year",
+          type: "select",
+          optionsKey: "years",
+        },
+      ],
+    },
+  ];
+
   const onFormSubmit = (data) => {
     const payload = {
       employeeId: data.employee,
@@ -94,81 +137,33 @@ export default function AdjustmentForm({
     <Card sx={{ p: 4, borderRadius: 3, boxShadow: 3 }}>
       <Stack spacing={2}>
 
-        {/* Employee + Amount */}
-        <Stack direction="row" spacing={2}>
-          <Stack sx={{ flex: 1 }}>
-            <Controller
-              name="employee"
-              control={control}
-              render={({ field }) => (
-                <GlobalInput
-                  type="select"
-                  label="Employee"
-                  value={field.value}
-                  onChange={field.onChange}
-                  options={employees.map(emp => ({
-                    value: emp._id,
-                    label: emp.name,
-                  }))}
-                  errorMessage={errors.employee?.message}
+        {/* Dynamic Fields */}
+        {formRows.map((row, rowIndex) => (
+          <Stack key={rowIndex} direction="row" spacing={2}>
+            {row.fields.map(field => (
+              <Stack key={field.name} sx={{ flex: 1 }}>
+                <Controller
+                  name={field.name}
+                  control={control}
+                  render={({ field: controllerField }) => (
+                    <GlobalInput
+                      type={field.type}
+                      label={field.label}
+                      value={controllerField.value}
+                      onChange={controllerField.onChange}
+                      options={
+                        field.optionsKey
+                          ? optionsMap[field.optionsKey]
+                          : undefined
+                      }
+                      errorMessage={errors[field.name]?.message}
+                    />
+                  )}
                 />
-              )}
-            />
+              </Stack>
+            ))}
           </Stack>
-
-          <Stack sx={{ flex: 1 }}>
-            <Controller
-              name="amount"
-              control={control}
-              render={({ field }) => (
-                <GlobalInput
-                  type="text"
-                  label="Amount"
-                  value={field.value}
-                  onChange={field.onChange}
-                  errorMessage={errors.amount?.message}
-                />
-              )}
-            />
-          </Stack>
-        </Stack>
-
-        {/* Month + Year */}
-        <Stack direction="row" spacing={2}>
-          <Stack sx={{ flex: 1 }}>
-            <Controller
-              name="month"
-              control={control}
-              render={({ field }) => (
-                <GlobalInput
-                  type="select"
-                  label="Month"
-                  value={field.value}
-                  onChange={field.onChange}
-                  options={months}
-                  errorMessage={errors.month?.message}
-                />
-              )}
-            />
-          </Stack>
-
-          <Stack sx={{ flex: 1 }}>
-            <Controller
-              name="year"
-              control={control}
-              render={({ field }) => (
-                <GlobalInput
-                  type="select"
-                  label="Year"
-                  value={field.value}
-                  onChange={field.onChange}
-                  options={years}
-                  errorMessage={errors.year?.message}
-                />
-              )}
-            />
-          </Stack>
-        </Stack>
+        ))}
 
         {/* Add / Less */}
         <Controller
@@ -204,6 +199,7 @@ export default function AdjustmentForm({
           )}
         />
 
+        {/* Image Upload */}
         <ImageUploadField
           name="image"
           control={control}
