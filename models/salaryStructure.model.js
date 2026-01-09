@@ -12,7 +12,7 @@ const salaryStructureSchema = new Schema({
     type: String,
     required: true,
   },
-  endMonth: { type: Number, required: true },
+  month: { type: Number, required: true },
   year: { type: Number, required: true },
 
   basicPay: {
@@ -50,4 +50,4 @@ const salaryStructureSchema = new Schema({
     default: Date.now,
   },
 });
-export default model("Salary_Structure", salaryStructureSchema);
+export default model("SalaryStructure", salaryStructureSchema);
