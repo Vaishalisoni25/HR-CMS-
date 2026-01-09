@@ -31,7 +31,8 @@ router.patch(
 
 router.delete(
   "/:id",
-  auth([ROLES.HR, ROLES.SUPERADMIN], deleteSalaryStructureById)
+  auth([ROLES.HR, ROLES.SUPERADMIN]),
+  deleteSalaryStructureById
 );
 
 export default router;

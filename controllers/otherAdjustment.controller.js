@@ -95,9 +95,16 @@ export async function updateAdjustmentById(req, res, next) {
     if (!adjustmentId) {
       return res.status(400).json({ message: "Adjustment Id is required" });
     }
+    const updateData = {
+      ...req.body,
+    };
+
+    if (req.file) {
+      updateData.image = req.file.path;
+    }
     const adjustment = await OtherAdjustment.findByIdAndUpdate(
       adjustmentId,
-      req.body,
+      updateData,
       {
         new: true,
       }

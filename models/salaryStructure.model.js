@@ -8,6 +8,10 @@ const salaryStructureSchema = new Schema({
     ref: "Employee",
     required: true,
   },
+  name: {
+    type: String,
+    required: true,
+  },
   month: { type: Number, required: true },
   year: { type: Number, required: true },
 
@@ -28,12 +32,12 @@ const salaryStructureSchema = new Schema({
     required: true,
   },
   //salary start from this date
-  effectiveFrom: {
+  startMonth: {
     type: Date,
     required: true,
   },
-  // salary Increment from this date
-  effectiveTo: {
+
+  endMonth: {
     type: Date,
   },
   //for show Increment Status
@@ -46,4 +50,4 @@ const salaryStructureSchema = new Schema({
     default: Date.now,
   },
 });
-export default model("Salary_Structure", salaryStructureSchema);
+export default model("SalaryStructure", salaryStructureSchema);

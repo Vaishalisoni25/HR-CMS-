@@ -19,9 +19,10 @@ const EmployeeSchema = new Schema({
     required: true,
     trim: true,
   },
-  basicSalary: {
-    type: Number,
-    default: 0,
+  basicPay: {
+    type: Schema.Types.ObjectId,
+    ref: "SalaryStructure",
+    default: null,
   },
   allowedLeaves: {
     type: Number,
