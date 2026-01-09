@@ -43,7 +43,9 @@ export async function createEmployee(req, res, next) {
 
 export async function getEmployees(_req, res, next) {
   try {
-    const employees = await Employee.find().lean();
+    const employees = await Employee.find()
+      .populate("basicPay", "basicPay")
+      .lean();
     res.json({
       succcess: true,
       message: "Employees fetched successfully",
@@ -66,7 +68,10 @@ export async function getEmployeeById(req, res, next) {
       return res.status(403).json({ message: "Access denied" });
     }
 
-    const employee = await Employee.findById(empId);
+    const employee = await Employee.findById(empId).populate(
+      "basicPay",
+      "basicPay"
+    );
     if (!employee) {
       return res.status(404).json({ message: "Employee not found" });
     }
