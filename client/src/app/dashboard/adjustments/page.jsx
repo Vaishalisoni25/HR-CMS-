@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Stack, Typography, Button, Snackbar } from "@mui/material";
+import { Stack, Typography, Button } from "@mui/material";
 import { PlusIcon } from "@phosphor-icons/react";
 import { SearchInput } from "@/components/ui/SearchInput";
 import FormModal from "@/components/ui/FormModal";
@@ -10,8 +10,27 @@ import { fetchEmployees } from "@/redux/store/employees/employeeThunk";
 import AdjustmentForm from "@/components/dashboard/adjustments/AdjustmentForm";
 import AdjustmentTable from "@/components/dashboard/adjustments/AdjustmentTable";
 import { addAdjustment, fetchAdjustments, deleteAdjustment, updateAdjustment } from "@/redux/store/adjustments/adjustmentThunk";
-import CustomSnackbar from "@/components/ui/CustomSnackbar";
 import ConfirmationDialog from "@/components/ui/ConfirmationDialog";
+import { toast } from 'react-toastify';
+import { showToast } from "@/utils/toast";
+import { filter, find, get, includes, debounce, isEqual } from "lodash";
+import { CustomTable } from "@/components/ui/CustomTable";
+
+const isAdjustmentUnchanged = (original, payload) => {
+  if (!original) return false;
+
+  const { image: origImage, ...originalData } = original;
+  const { image: payloadImage, ...payloadData } = payload;
+
+  const normalize = obj => ({
+    ...obj,
+    type: obj.type?.toUpperCase(),
+    description: obj.description || "",
+  });
+
+  return isEqual(normalize(originalData), normalize(payloadData)) &&
+    (!payloadImage || payloadImage === origImage);
+};
 
 export default function AdjustmentsPage() {
   const dispatch = useDispatch();
@@ -30,11 +49,6 @@ export default function AdjustmentsPage() {
     open: false,
     adjustmentId: null,
   });
-  const [snackbar, setSnackbar] = useState({
-    open: false,
-    message: "",
-    severity: "success",
-  });
 
   const getErrorMessage = (error) => {
     return (
@@ -44,22 +58,33 @@ export default function AdjustmentsPage() {
     );
   };
 
-  const handleSnackbar = (message, severity = "success") => {
-    setSnackbar({ open: true, message, severity });
-  };
-
   const formSubmitRef = useRef(null);
-  const filteredAdjustments = React.useMemo(() => {
+
+  const filteredAdjustments = useMemo(() => {
     if (!searchQuery) return adjustments;
-    return adjustments.filter(adj => {
-      const employeeName = employees.find(e => e._id === adj.employeeId)?.name || "";
-      return (
-        employeeName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        adj.type.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (adj.description || "").toLowerCase().includes(searchQuery.toLowerCase())
-      );
+
+    const query = searchQuery.toLowerCase();
+
+    return filter(adjustments, adj => {
+      const employeeName = get(find(employees, { _id: adj.employeeId }), "name", "").toLowerCase();
+      return includes(employeeName, query) ||
+        includes(adj.type.toLowerCase(), query) ||
+        includes((adj.description || "").toLowerCase(), query);
     });
   }, [searchQuery, adjustments, employees]);
+
+  const handleSearchChange = useCallback(
+    debounce((value) => {
+      setSearchQuery(value);
+    }, 100),
+    []
+  );
+
+  useEffect(() => {
+    return () => {
+      handleSearchChange.cancel();
+    };
+  }, [handleSearchChange]);
 
   const fetchInitialData = React.useCallback(async () => {
     try {
@@ -77,9 +102,9 @@ export default function AdjustmentsPage() {
   }, [fetchInitialData]);
 
 
-  const resetModal = () => {
+  const resetModal = useCallback(() => {
     setModalState({ open: false, isEditMode: false, editingAdjustment: null });
-  };
+  }, []);
 
   const prepareFormData = (payload) => {
     const formData = new FormData();
@@ -98,7 +123,7 @@ export default function AdjustmentsPage() {
   const handleAddOrUpdateAdjustment = async (payload, reset) => {
     if (isSubmitting) return;
     if (!payload.employeeId) {
-      return handleSnackbar("Please select an employee", "error");
+      return showToast("Please select an employee", "error");
     }
 
     setIsSubmitting(true);
@@ -106,34 +131,22 @@ export default function AdjustmentsPage() {
     if (modalState.isEditMode && modalState.editingAdjustment?._id) {
       const original = modalState.editingAdjustment;
 
-      // Compare field by field
-      const isUnchanged =
-        original.employeeId === payload.employeeId &&
-        original.month === payload.month &&
-        original.year === payload.year &&
-        original.type.toUpperCase() === payload.type.toUpperCase() &&
-        original.amount === payload.amount &&
-        (original.description || "") === (payload.description || "") &&
-        (!payload.image || payload.image === original.image);
-
-      if (isUnchanged) {
-        return handleSnackbar("No changes detected.", "info"); // Early exit
+      if (isAdjustmentUnchanged(original, payload)) {
+        setIsSubmitting(false);
+        return showToast("No changes detected.", "info");
       }
-    } 
+    }
 
     const formData = prepareFormData(payload);
 
     try {
       if (modalState.isEditMode && modalState.editingAdjustment?._id) {
-        // Update the adjustment
         await dispatch(
           updateAdjustment({ id: modalState.editingAdjustment._id, data: formData })
         ).unwrap();
-
-        handleSnackbar("Adjustment updated successfully!");
+        showToast("Adjustment updated successfully!", "success");
 
         await dispatch(fetchAdjustments()).unwrap();
-
 
         setModalState({
           open: false,
@@ -143,10 +156,9 @@ export default function AdjustmentsPage() {
 
         reset?.();
       } else {
-        // Add new adjustment
         await dispatch(addAdjustment({ employeeId: payload.employeeId, formData })).unwrap();
 
-        handleSnackbar("Adjustment created successfully!");
+        showToast("Adjustment created successfully!", "success");
 
         // Refresh adjustments 
         await dispatch(fetchAdjustments()).unwrap();
@@ -156,7 +168,7 @@ export default function AdjustmentsPage() {
       }
     } catch (error) {
       console.error("Adjustment Error:", error);
-      handleSnackbar(error?.message || "Something went wrong", "error");
+      showToast(error?.message || "Something went wrong", "error");
     } finally {
       setIsSubmitting(false);
     }
@@ -166,9 +178,9 @@ export default function AdjustmentsPage() {
     setModalState({ open: true, isEditMode: true, editingAdjustment: adjustment });
   };
 
-  const handleDeleteDialog = (id) => {
+  const handleDeleteDialog = useCallback((id) => {
     setConfirmDeleteState({ open: true, adjustmentId: id });
-  };
+  }, []);
 
   const handleConfirmDelete = async () => {
     if (isDeleting) return;
@@ -179,34 +191,28 @@ export default function AdjustmentsPage() {
     try {
       await dispatch(deleteAdjustment({ id: adjustmentId })).unwrap();
       dispatch(fetchAdjustments());
-      handleSnackbar("Adjustment deleted successfully!");
+      showToast("Adjustment deleted successfully!", "success");
     } catch (error) {
       console.error("Failed to delete adjustment:", error);
-      handleSnackbar(error?.message || "Failed to delete adjustment", "error");
+      showToast(error?.message || "Failed to delete adjustment", "error");
     } finally {
       setIsDeleting(false);
       setConfirmDeleteState({ open: false, adjustmentId: null });
     }
   };
 
+  const editingAdjustment = useMemo(() => {
+    if (!modalState.editingAdjustment?._id) return modalState.editingAdjustment;
+
+    return adjustments.find(a => a._id === modalState.editingAdjustment._id) || modalState.editingAdjustment;
+  }, [modalState.editingAdjustment, adjustments]);
+
+  const handleOpenModal = useCallback(() => {
+    setModalState(prev => ({ ...prev, open: true }));
+  }, []);
+
   return (
     <Stack spacing={3}>
-
-      <Stack direction="row" spacing={3} alignItems="center">
-        <Typography variant="h4" sx={{ flex: 1 }}>Adjustments</Typography>
-        <Button
-          variant="contained"
-          startIcon={<PlusIcon />}
-          onClick={() => setModalState({ ...modalState, open: true })}
-        >
-          Add Adjustment
-        </Button>
-      </Stack>
-
-      <SearchInput
-        value={searchQuery}
-        onChange={(e) => setSearchQuery(e.target.value)}
-      />
 
       <FormModal
         open={modalState.open}
@@ -220,9 +226,7 @@ export default function AdjustmentsPage() {
           employees={employees}
           onSubmit={handleAddOrUpdateAdjustment}
           onFormSubmitRef={formSubmitRef}
-          initialValues={
-            adjustments.find(a => a._id === modalState.editingAdjustment?._id) || modalState.editingAdjustment
-          }
+          initialValues={editingAdjustment}
           isEditMode={modalState.isEditMode}
         />
       </FormModal>
@@ -232,13 +236,11 @@ export default function AdjustmentsPage() {
         employees={employees}
         onEdit={handleEditAdjustment}
         onDelete={handleDeleteDialog}
-      />
-
-      <CustomSnackbar
-        message={snackbar.message}
-        severity={snackbar.severity}
-        open={snackbar.open}
-        onClose={() => setSnackbar({ ...snackbar, open: false })}
+        title="Adjustments"
+        showAddButton={true}
+        onAddClick={handleOpenModal}
+        showSearch={true}
+        searchPlaceholder="Search adjustments..."
       />
 
       <ConfirmationDialog

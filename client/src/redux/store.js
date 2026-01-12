@@ -3,6 +3,7 @@ import authReducer from './slices/authSlice';
 import employeeReducer from './store/employees/employeeSlice';
 import salariesReducer from './store/salaries/salarySlice';
 import adjustmentReducer from './store/adjustments/adjustmentSlice';
+import attendanceReducer from './store/attendance/attendanceSlice';
 
 export const store = configureStore({
   reducer: {
@@ -10,5 +11,6 @@ export const store = configureStore({
     employees: employeeReducer,
     salaries: salariesReducer,
     adjustments: adjustmentReducer,
+    attendance: attendanceReducer,
   },
 });

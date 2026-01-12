@@ -1,135 +1,164 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   Box,
   Card,
   Checkbox,
-  CircularProgress,
   Divider,
-  Stack,
   Table,
   TableBody,
   TableCell,
   TableHead,
   TablePagination,
   TableRow,
+  Stack,
   Typography,
+  Button,
 } from '@mui/material';
 import { useSelection } from '@/hooks/use-selection';
 import TableLoading from '@/components/ui/TableLoading';
 import TableEmpty from '@/components/ui/TableEmpty';
+import { SearchInput } from '@/components/ui/SearchInput';
+import { PlusIcon } from '@phosphor-icons/react';
 
-const noop = () => { };
+export function CustomTable({
+  columns = [],
+  rows = [],
+  rowKey = 'id',
+  loading = false,
+  rowsPerPageOptions = [5, 10, 25],
 
-export function CustomTable(props) {
-  const {
-    columns,
-    rows,
-    rowKey,
-    count,
-    page,
-    rowsPerPage,
-    onPageChange,
-    onRowsPerPageChange,
-    loading,
-  } = props;
+  title,
+  showAddButton = false,
+  onAddClick,
+  showSearch = false,
+  searchPlaceholder = 'Search...',
+  headerOnly = false,
+}) {
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(rowsPerPageOptions[0]);
+  const [search, setSearch] = useState('');
 
-  const rowIds = useMemo(
-    () => rows.map((row) => row[rowKey]),
-    [rows, rowKey]
+  const filteredRows = useMemo(() => {
+    if (!search) return rows;
+    const lowerSearch = search.toLowerCase();
+    return rows.filter((row) =>
+      columns.some((col) => String(row[col.key]).toLowerCase().includes(lowerSearch))
+    );
+  }, [rows, columns, search]);
+
+  const paginatedRows = filteredRows.slice(
+    page * rowsPerPage,
+    page * rowsPerPage + rowsPerPage
   );
+
+  const rowIds = useMemo(() => filteredRows.map((row) => row[rowKey]), [filteredRows, rowKey]);
   const { selectAll, deselectAll, selectOne, deselectOne, selected } = useSelection(rowIds);
 
   const selectedCount = selected.size;
-  const selectedAll = rows.length > 0 && selectedCount === rows.length;
-  const selectedSome = selectedCount > 0 && selectedCount < rows.length;
+  const selectedAll = filteredRows.length > 0 && selectedCount === filteredRows.length;
+  const selectedSome = selectedCount > 0 && selectedCount < filteredRows.length;
 
-  const handleSelectAll = (event) => {
-    event.target.checked ? selectAll() : deselectAll();
+  const handleChangePage = (event, newPage) => setPage(newPage);
+  const handleChangeRowsPerPage = (event) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
   };
-
-  const handleSelectOne = (id, checked) => {
-    checked ? selectOne(id) : deselectOne(id);
-  };
+  const handleSelectAll = (event) => (event.target.checked ? selectAll() : deselectAll());
+  const handleSelectOne = (id, checked) => (checked ? selectOne(id) : deselectOne(id));
 
   return (
-    <Card>
-      <Box sx={{ overflowX: 'auto' }}>
-        <Table sx={{ minWidth: 800 }}>
-          <TableHead>
-            <TableRow>
-              <TableCell padding="checkbox">
-                <Checkbox
-                  checked={selectedAll}
-                  indeterminate={selectedSome}
-                  onChange={handleSelectAll}
-                />
-              </TableCell>
-              {columns.map((col) => (
-                <TableCell key={col.key}>{col.label}</TableCell>
-              ))}
-            </TableRow>
-          </TableHead>
+    <>
 
-          <TableBody>
-            {loading && (
-              <TableLoading colSpan={columns.length + 1} />
+      <Stack spacing={2} >
+        {(title || showAddButton) && (
+          <Stack direction="row" spacing={2} alignItems="center">
+            {title && <Typography variant="h4" sx={{ flex: 1 }}>{title}</Typography>}
+            {showAddButton && (
+              <Button
+                variant="contained"
+                startIcon={<PlusIcon />}
+                onClick={onAddClick}
+              >
+                Add
+              </Button>
             )}
+          </Stack>
+        )}
 
-            {!loading && rows.length === 0 && (
-              <TableEmpty
-                colSpan={columns.length + 1}
-                text="No data found"
-              />
-            )}
-            {!loading &&
-              rows.map((row) => {
-                const isSelected = selected.has(row[rowKey]);
-                return (
-                  <TableRow key={row[rowKey]} hover selected={isSelected}>
-                    <TableCell padding="checkbox">
-                      <Checkbox
-                        checked={isSelected}
-                        onChange={(e) => handleSelectOne(row[rowKey], e.target.checked)}
-                      />
-                    </TableCell>
-                    {columns.map((col) => (
-                      <TableCell key={col.key}>
-                        {col.render ? col.render(row) : row[col.key]}
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                );
-              }
+        {showSearch && (
+          <SearchInput
+            value={search}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setPage(0); 
+            }}
+            placeholder={searchPlaceholder}
+          />
+        )}
+      </Stack>
+
+      <Card>
+
+        {/* Table */}
+        <Box sx={{ overflowX: 'auto' }}>
+          <Table sx={{ minWidth: 800 }}>
+            <TableHead>
+              <TableRow>
+                <TableCell padding="checkbox">
+                  <Checkbox
+                    checked={selectedAll}
+                    indeterminate={selectedSome}
+                    onChange={handleSelectAll}
+                  />
+                </TableCell>
+                {columns.map((col) => (
+                  <TableCell key={col.key}>{col.label}</TableCell>
+                ))}
+              </TableRow>
+            </TableHead>
+
+            <TableBody>
+              {loading && <TableLoading colSpan={columns.length + 1} />}
+              {!loading && filteredRows.length === 0 && (
+                <TableEmpty colSpan={columns.length + 1} text="No data found" />
               )}
-          </TableBody>
-        </Table>
-      </Box>
+              {!loading &&
+                paginatedRows.map((row) => {
+                  const isSelected = selected.has(row[rowKey]);
+                  return (
+                    <TableRow key={row[rowKey]} hover selected={isSelected}>
+                      <TableCell padding="checkbox">
+                        <Checkbox
+                          checked={isSelected}
+                          onChange={(e) => handleSelectOne(row[rowKey], e.target.checked)}
+                        />
+                      </TableCell>
+                      {columns.map((col) => (
+                        <TableCell key={col.key}>
+                          {col.render ? col.render(row) : row[col.key]}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  );
+                })}
+            </TableBody>
+          </Table>
+        </Box>
 
-      <Divider />
+        <Divider />
 
-      <TablePagination
-        component="div"
-        count={count}
-        page={page}
-        rowsPerPage={rowsPerPage}
-        onPageChange={onPageChange}
-        onRowsPerPageChange={onRowsPerPageChange}
-        rowsPerPageOptions={[5, 10, 25]}
-      />
-    </Card>
+        <TablePagination
+          component="div"
+          count={filteredRows.length}
+          page={page}
+          rowsPerPage={rowsPerPage}
+          onPageChange={handleChangePage}
+          onRowsPerPageChange={handleChangeRowsPerPage}
+          rowsPerPageOptions={rowsPerPageOptions}
+        />
+      </Card>
+    </>
   );
 }
-
-CustomTable.defaultProps = {
-  columns: [],
-  rows: [],
-  rowKey: 'id',
-  count: 0,
-  page: 0,
-  rowsPerPage: 5,
-  onPageChange: () => { },
-  onRowsPerPageChange: () => { },
-  loading: false,
-};

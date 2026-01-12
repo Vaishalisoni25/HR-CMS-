@@ -2,6 +2,8 @@
 
 import * as React from 'react';
 import { Provider } from 'react-redux';
+import {ToastContainer} from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 import '@/styles/global.css';
 import {store} from '@/redux/store';
@@ -22,6 +24,18 @@ export default function Layout({ children }) {
               <ThemeProvider>
                 <SnackbarProvider>
                 {children}
+                 <ToastContainer
+                    position="top-right"
+                    autoClose={3000}
+                    hideProgressBar={false}
+                    newestOnTop={false}
+                    closeOnClick
+                    rtl={false}
+                    pauseOnFocusLoss
+                    draggable
+                    pauseOnHover
+                    theme="light" // or "dark"
+                  />
                 </SnackbarProvider>
                 </ThemeProvider>
             </LocalizationProvider>

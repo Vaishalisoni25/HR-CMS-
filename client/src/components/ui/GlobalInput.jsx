@@ -2,12 +2,10 @@
 
 import React from 'react';
 
-// Custom Components
 import CustomTextField from '@/components/ui/CustomTextField';
 import CustomTextArea from '@/components/ui/CustomTextArea';
 import CustomSelect from '@/components/ui/CustomSelect';
 import CustomRadioGroup from '@/components/ui/CustomRadioGroup';
-// import CustomCheckbox from '@/components/ui/CustomCheckbox';
 import CustomSwitch from '@/components/ui/CustomSwitch';
 import CustomDatePicker from '@/components/ui/CustomDatePicker';
 import DateRangePicker from '@/components/ui/DateRangePicker';
@@ -84,17 +82,6 @@ export default function GlobalInput({
                 />
             );
 
-        // case 'checkbox':
-        //   return (
-        //     <CustomCheckbox
-        //       label={label}
-        //       name={name}
-        //       checked={value}
-        //       onChange={onChange}
-        //       {...rest}
-        //     />
-        //   );
-
         case 'switch':
             return (
                 <CustomSwitch
@@ -131,17 +118,17 @@ export default function GlobalInput({
                 />
             );
 
-case 'image':
-  return (
-    <ImageUploadField
-      label={label}
-      value={value}
-      onChange={onChange}
-      error={!!errorMessage}
-      helperText={errorMessage || ''}
-      {...rest}
-    />
-  );
+        case 'image':
+            return (
+                <ImageUploadField
+                    label={label}
+                    value={value}
+                    onChange={onChange}
+                    error={!!errorMessage}
+                    helperText={errorMessage || ''}
+                    {...rest}
+                />
+            );
 
 
         default:

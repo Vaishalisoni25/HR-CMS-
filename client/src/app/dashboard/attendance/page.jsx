@@ -1,18 +1,27 @@
 'use client';
 
-import React from "react";
-import CustomTypography from "@/components/ui/CustomTypography";
+import React, { useState } from "react";
 import HRCalendar from "@/components/ui/HrCalendar";
-import { Stack } from "@mui/material";
+import { Stack, Divider, Typography } from "@mui/material";
+import AttendanceFilters from "@/components/dashboard/attendance/AttendanceFilters";
 
 export default function AttendancePage() {
-     return (
-          <Stack spacing={3}>
-          <CustomTypography variant="h4">
-               Attendance
-          </CustomTypography>
+  const [employee, setEmployee] = useState("");
+  const [month, setMonth] = useState("");
+  const [year, setYear] = useState("");
 
-          <HRCalendar/>   
-     </Stack>
-     );
+  return (
+    <Stack spacing={4}>
+      <Typography variant="h4">Attendance</Typography>
+      
+      <AttendanceFilters
+        employee={employee}
+        setEmployee={setEmployee}
+        month={month}
+        setMonth={setMonth}
+        year={year}
+        setYear={setYear}
+      />
+    </Stack>
+  );
 }

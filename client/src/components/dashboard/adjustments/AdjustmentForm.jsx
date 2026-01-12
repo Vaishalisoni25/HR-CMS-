@@ -137,7 +137,6 @@ export default function AdjustmentForm({
     <Card sx={{ p: 4, borderRadius: 3, boxShadow: 3 }}>
       <Stack spacing={2}>
 
-        {/* Dynamic Fields */}
         {formRows.map((row, rowIndex) => (
           <Stack key={rowIndex} direction="row" spacing={2}>
             {row.fields.map(field => (
@@ -165,7 +164,6 @@ export default function AdjustmentForm({
           </Stack>
         ))}
 
-        {/* Add / Less */}
         <Controller
           name="type"
           control={control}
@@ -183,7 +181,6 @@ export default function AdjustmentForm({
           )}
         />
 
-        {/* Description */}
         <Controller
           name="description"
           control={control}
@@ -199,7 +196,6 @@ export default function AdjustmentForm({
           )}
         />
 
-        {/* Image Upload */}
         <ImageUploadField
           name="image"
           control={control}

@@ -132,4 +132,59 @@
   }
 }
 
+/* HRCalendar.css */
 
+.fc .fc-toolbar-title {
+  font-size: 1rem; /* reduce month title size */
+}
+
+.fc .fc-daygrid-day-number {
+  font-size: 0.8rem; /* reduce day number */
+}
+
+.fc .fc-event {
+  font-size: 0.7rem; /* reduce event text */
+  padding: 2px 3px; /* reduce event padding */
+}
+
+.fc {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+/* Calendar wrapper */
+.hr-calendar-wrapper {
+  width: 80%;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.hr-calendar-wrapper .fc {
+  margin-top: 16px;
+}
+
+/* Event legend */
+.event-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 12px 0 20px;
+}
+
+/* Calendar event */
+.calendar-event {
+  padding: 2px 4px;
+  border-radius: 4px;
+  color: #fff;
+  font-size: 0.75rem;
+  text-align: center;
+  margin-bottom: 2px;
+}
+
+.event-legend .chip {
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 500;
+  padding: 0.3rem 1.2rem;
+  margin-right: 0.4rem;
+}

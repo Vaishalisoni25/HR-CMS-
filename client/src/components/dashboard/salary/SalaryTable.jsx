@@ -14,9 +14,18 @@ const formatMonth = (date) => {
   });
 };
 
-export default function SalaryTable({ rows=[], employees=[], onEdit, onDelete }) {
-  const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(5);
+export default function SalaryTable({ 
+  rows=[], 
+  employees=[], 
+  onEdit, 
+  onDelete,
+  title,
+  showAddButton,
+  onAddClick,
+  showSearch,
+  searchPlaceholder,
+  loading = false,
+}) {
   const mappedRows = rows.map((row) => {
     const employee = employees.find((e) => e._id === row.employeeId);
 
@@ -28,17 +37,6 @@ export default function SalaryTable({ rows=[], employees=[], onEdit, onDelete })
       salary: `₹ ${row.basicPay?.toLocaleString('en-IN')}`,
     };
   });
-
-   const paginatedRows = mappedRows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
-
-  const handlePageChange = (event, newPage) => {
-    setPage(newPage);
-  };
-
-  const handleRowsPerPageChange = (event) => {
-    setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(0); // reset to first page
-  };
 
   const columns = [
     {
@@ -85,13 +83,14 @@ export default function SalaryTable({ rows=[], employees=[], onEdit, onDelete })
   return (
     <CustomTable
       columns={columns}
-      rows={paginatedRows} 
-      rowKey="_id"       
-      count={mappedRows.length}   
-      page={page}
-      rowsPerPage={rowsPerPage}
-      onPageChange={handlePageChange}
-      onRowsPerPageChange={handleRowsPerPageChange}
+      rows={mappedRows} 
+      rowKey="_id"
+      title={title}
+      showAddButton={showAddButton}
+      onAddClick={onAddClick}
+      showSearch={showSearch}
+      searchPlaceholder={searchPlaceholder}
+      loading={loading}       
     />
   );
 }

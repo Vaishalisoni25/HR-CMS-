@@ -26,8 +26,7 @@ const EmptyDialog = ({
       maxWidth={maxWidth}
       fullWidth={fullWidth}
       sx={sx}
-    >
-      {/* Optional Header */}
+    >  
       {title && (
         <DialogTitle>
           <Stack
@@ -44,7 +43,6 @@ const EmptyDialog = ({
         </DialogTitle>
       )}
 
-      {/* Dialog Body */}
       <DialogContent>
         {children}
       </DialogContent>

@@ -9,16 +9,7 @@ import FormControl from '@mui/material/FormControl';
 import { Box } from '@mui/material';
 
 const CustomRadioGroup = ({
-  // label = '',
-  // name = '',
-  // options = [],
-  // defaultValue = '',
-  // onChange,
-  // value='',
-  // row = true,
-  // size = 'medium', 
-  // ...props
-    label,
+  label,
   row = false,
   name,
   value,
@@ -31,22 +22,22 @@ const CustomRadioGroup = ({
 
   return (
     // <FormControl fullWidth {...props}>
-     <FormControl fullWidth error={error}>
-      {label &&  (<FormLabel>{label}</FormLabel>)}   
+    <FormControl fullWidth error={error}>
+      {label && (<FormLabel>{label}</FormLabel>)}
       <RadioGroup row={row} name={name} value={value} onChange={onChange}>
         {options.map((option) => (
           <FormControlLabel
             key={option.value}
             value={option.value}
-            control={<Radio size={size || 'medium'}/>}
+            control={<Radio size={size || 'medium'} />}
             label={option.label}
             sx={{
-              cursor: 'pointer',        
+              cursor: 'pointer',
             }}
           />
         ))}
       </RadioGroup>
-      
+
     </FormControl>
   );
 };

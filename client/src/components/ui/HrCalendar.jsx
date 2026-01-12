@@ -1,213 +1,206 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import interactionPlugin from '@fullcalendar/interaction';
-import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  TextField,
-  Button,
-  MenuItem,
-  Tooltip,
-} from '@mui/material';
-import CustomButton from './CustomButton';
-import CustomDatePicker from './CustomDatePicker';
+import { Tooltip, Box, Chip } from '@mui/material';
+import AttendanceDialog from '../dashboard/attendance/AttendanceDialog';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchAttendance, addAttendance } from '@/redux/store/attendance/attendanceThunk';
+import { toast } from 'react-toastify';
 
 // Event types and colors
 const eventTypes = [
-  { label: 'Present', color: '#81C784' },        
-  { label: 'Absent', color: '#E57373' },         
-  { label: 'Work From Home', color: '#64B5F6' }, 
-  { label: 'Half-day', color: '#FFB74D' },       
-  { label: 'Holiday', color: '#BA68C8' },        
-  { label: 'Meeting', color: '#90A4AE' },           
+  { label: 'Attended', color: '#81C784' },
+  { label: 'Absent', color: '#E57373' },
+  { label: 'Work From Home', color: '#64B5F6' },
+  { label: 'Half-day', color: '#FFB74D' },
+  { label: 'Leave', color: '#BA68C8' },
+  { label: 'Sick Leave', color: '#90A4AE' },
 ];
 
-const HRCalendar = () => {
+const EventLegend = () => (
+  <Box component="div" className="event-legend" sx={{ mb: 3 }}>
+    {eventTypes.map((type) => (
+      <Chip
+        key={type.label}
+        label={type.label}
+        size="small"
+        className="chip"
+        style={{ backgroundColor: type.color }}
+      />
+    ))}
+  </Box>
+);
+
+const HRCalendar = ({ selectedEmployee, selectedMonth, selectedYear }) => {
+  const dispatch = useDispatch();
+  const attendanceList = useSelector((state) => state.attendance.list);
   const [events, setEvents] = useState([]);
   const [openModal, setOpenModal] = useState(false);
-  const [isEditing, setIsEditing] = useState(false);
-   const [selectedEventId, setSelectedEventId] = useState(null);
   const [newEvent, setNewEvent] = useState({
-    title: '',
-    date: '',
-    color: '',
-    description: '',
+    action: '',
+    leaveType: '',
+    countInPolicy: '',
   });
+  const [selectedDate, setSelectedDate] = useState(null);
 
-  // Handle clicking a date
-  const handleDateClick = (info) => {
-    setIsEditing(false);
-    setSelectedEventId(null);
-    setNewEvent({ title: '', date: info.dateStr, color: '', description: '' });
-    setOpenModal(true);
-  };
+  const calendarRef = useRef(null);
 
-  // Click on an event → Edit modal
-  const handleEventClick = (info) => {
-    const event = info.event;
-    setIsEditing(true);
-    setSelectedEventId(event.id.toString());
-
-    setNewEvent({
-      title: event.title,
-      date: event.startStr,
-      color: event.backgroundColor,
-      description: event.extendedProps.description || '',
-    });
-
-    setOpenModal(true);
-  };
-
-  // Handle input changes
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setNewEvent((prev) => ({ ...prev, [name]: value }));
-
-  if (name === 'title') {
-    const type = eventTypes.find((t) => t.label === value);
-    if (type) {
-      setNewEvent((prev) => ({ ...prev, color: type.color, backgroundColor: type.color }));
+  useEffect(() => {
+    if (selectedEmployee && selectedMonth && selectedYear) {
+      dispatch(fetchAttendance({
+        employeeId: selectedEmployee,
+        month: selectedMonth,
+        year: selectedYear
+      }));
     }
-  }
-  };
+  }, [selectedEmployee, selectedMonth, selectedYear, dispatch]);
 
-// Add new event
-  const handleAddEvent = () => {
-    if (!newEvent.title || !newEvent.date)
-      return alert('Please select event type and date');
+  useEffect(() => {
+    if (selectedMonth && selectedYear && calendarRef.current) {
+      const calendarApi = calendarRef.current.getApi();
+      const newDate = new Date(selectedYear, selectedMonth - 1, 1);
+      calendarApi.gotoDate(newDate);
+    }
+  }, [selectedMonth, selectedYear]);
 
-    const newItem = {
-      id: Date.now().toString(),
-      title: newEvent.title,
-      start: newEvent.date,
-      backgroundColor: newEvent.color,
-      description: newEvent.description,
+  useEffect(() => {
+    if (!attendanceList) return;
+
+    const typeColorMap = {
+      Attended: '#81C784',
+      Absent: '#E57373',
+      'Work From Home': '#64B5F6',
+      'Half-day': '#FFB74D',
+      Leave: '#BA68C8',
+      'Sick Leave': '#90A4AE',
     };
 
-    setEvents([...events, newItem]);
-    setOpenModal(false);
+    const mappedEvents = attendanceList.map(att => ({
+      id: att._id,
+      title: att.status,
+      start: att.date.split('T')[0],
+      allDay: true,
+      backgroundColor: typeColorMap[att.status] || '#90A4AE',
+      employeeId: att.employeeId,
+    }));
+
+    setEvents(mappedEvents);
+  }, [attendanceList]);
+
+  const handleDateClick = (info) => {
+    setSelectedDate(info.dateStr);
+    setNewEvent({
+      action: '',
+      attendanceType: '',
+      leaveType: '',
+    });
+    setOpenModal(true);
   };
 
-  // Save edited event
-  const handleUpdateEvent = () => {
-    setEvents((prev) =>
-      prev.map((ev) =>
-        ev.id === selectedEventId
-          ? {
-              ...ev,
-              title: newEvent.title,
-              date: newEvent.date,
-              backgroundColor: newEvent.color,
-              description: newEvent.description,
-            }
-          : ev
-      )
-    );
-
-    setOpenModal(false);
+  const handleDialogChange = (e) => {
+    const { name, value } = e.target;
+    setNewEvent((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Delete event
-  const handleDeleteEvent = () => {
-    if (!window.confirm('Delete this event?')) return;
+  useEffect(() => {
+    console.log('Attendance list:', attendanceList);
+    console.log('Mapped events:', events);
+  }, [attendanceList, events]);
 
-    setEvents((prev) => prev.filter((ev) => ev.id !== selectedEventId));
-    setOpenModal(false);
+  const handleDialogAddEvent = async () => {
+    if (newEvent.action === 'attendance' && !newEvent.attendanceType) {
+      toast.error('Please select attendance type');
+      return;
+    }
+
+    if (
+      newEvent.action === 'leave' &&
+      !newEvent.leaveType
+    ) {
+      toast.error('Please select leave type');
+      return;
+    }
+
+    const attendanceData = {
+      date: selectedDate,
+      status:
+        newEvent.action === 'attendance'
+          ? newEvent.attendanceType
+          : newEvent.leaveType,
+      leaveType:
+        newEvent.action === 'leave'
+          ? newEvent.leaveType
+          : null,
+      isPaidLeave: true,
+    };
+
+    try {
+      await dispatch(
+        addAttendance({
+          employeeId: selectedEmployee,
+          attendanceData,
+        })
+      ).unwrap();
+
+      setOpenModal(false);
+
+      dispatch(
+        fetchAttendance({
+          employeeId: selectedEmployee,
+          month: selectedMonth,
+          year: selectedYear,
+        })
+      );
+      toast.success('Attendance added successfully!');
+    } catch (error) {
+      console.error('Add attendance failed', error);
+      toast.error('Failed to add attendance');
+    }
   };
 
   return (
     <>
-      <FullCalendar
-        plugins={[dayGridPlugin, interactionPlugin]}
-        initialView="dayGridMonth"
-        events={events}
-        dayMaxEvents={true}
-        dateClick={handleDateClick}
-        eventClick={handleEventClick} 
-        eventContent={(eventInfo) => (
-          <Tooltip title={eventInfo.event.extendedProps.description || ''} arrow>
-            <div
-              style={{
-                backgroundColor: eventInfo.event.backgroundColor || eventInfo.event.color,
-                padding: '2px 4px',
-                borderRadius: '4px',
-                color: '#fff',
-                fontSize: '0.75rem',
-                textAlign: 'center',
-                marginBottom: '2px',
-              }}
-            >
-              {eventInfo.event.title}
-            </div>
-          </Tooltip>
-        )}
-      />
+      <div className="hr-calendar-wrapper">
+        <EventLegend />
 
-      {/* Modal for adding new events */}
-      <Dialog open={openModal} onClose={() => setOpenModal(false)}>
-       
-        <DialogTitle>{isEditing ? 'Edit Event' : 'Add Event'}</DialogTitle>
-        <DialogContent>
-          <TextField
-            select
-            label="Event Type"
-            name="title"
-            value={newEvent.title}
-            onChange={handleChange}
-            fullWidth
-            margin="dense"
-          >
-            {eventTypes.map((type) => (
-              <MenuItem
-                key={type.label}
-                value={type.label}
+        <FullCalendar
+          ref={calendarRef}
+          plugins={[dayGridPlugin, interactionPlugin]}
+          initialView="dayGridMonth"
+          height="auto"
+          contentHeight="auto"
+          expandRows={false}
+          dayMaxEvents={true}
+          dateClick={handleDateClick}
+          events={
+            selectedEmployee
+              ? events.filter((e) => e.employeeId === selectedEmployee)
+              : events
+          }
+          eventContent={(eventInfo) => (
+            <Tooltip title={eventInfo.event.title} arrow>
+              <div
+                className="calendar-event"
+                style={{
+                  backgroundColor:
+                    eventInfo.event.backgroundColor || eventInfo.event.color,
+                }}
               >
-                {type.label}
-              </MenuItem>
-            ))}
-          </TextField>
-
-          <TextField
-            label="Date"
-            name="date"
-            type="date"
-            value={newEvent.date}
-            onChange={handleChange}
-            fullWidth
-            margin="dense"
-            InputLabelProps={{ shrink: true }}
-          />
-
-          <TextField
-            label="Description"
-            name="description"
-            value={newEvent.description}
-            onChange={handleChange}
-            fullWidth
-            margin="dense"
-          />
-        </DialogContent>
-        <DialogActions>
-            {isEditing && (
-            <CustomButton color="error" variant='outlined' onClick={handleDeleteEvent}>
-              Delete
-            </CustomButton>
+                {eventInfo.event.title}
+              </div>
+            </Tooltip>
           )}
-          <CustomButton variant="outlined" onClick={() => setOpenModal(false)}>Cancel</CustomButton>
-           {isEditing ? (
-            <CustomButton variant="contained" onClick={handleUpdateEvent}>
-              Save Changes
-            </CustomButton>
-          ) : (
-          <CustomButton variant="contained" onClick={handleAddEvent}>
-            Add
-          </CustomButton>
-           )}
-        </DialogActions>
-      </Dialog>
+        />
+      </div>
+
+      <AttendanceDialog
+        open={openModal}
+        onClose={() => setOpenModal(false)}
+        newEvent={newEvent}
+        handleChange={handleDialogChange}
+        handleAddEvent={handleDialogAddEvent}
+      />
     </>
   );
 };

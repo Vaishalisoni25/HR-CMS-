@@ -100,6 +100,7 @@ export default function EmployeesClient() {
 
     const payload = {
       ...newEmployee,
+      EmployeeCode: newEmployee.employeeCode,
       joiningDate: newEmployee.joiningDate
         ? dayjs(newEmployee.joiningDate).format('YYYY-MM-DD')
         : null,
@@ -178,7 +179,7 @@ export default function EmployeesClient() {
           position: employee.position || '',
           employmentType: employee.employmentType || '',
           joiningDate: employee.joiningDate ? dayjs(employee.joiningDate) : null,
-          employeeCode: employee.employeeCode || '',
+          employeeCode: employee.EmployeeCode || '',
           status: employee.status || 'Active',
           tax: employee.tax || '',
         });
@@ -208,10 +209,10 @@ export default function EmployeesClient() {
       );
   }, [employees, search]);
 
-  const paginatedEmployees = React.useMemo(() => {
-    const start = page * rowsPerPage;
-    return filteredEmployees.slice(start, start + rowsPerPage);
-  }, [filteredEmployees, page, rowsPerPage]);
+  // const paginatedEmployees = React.useMemo(() => {
+  //   const start = page * rowsPerPage;
+  //   return filteredEmployees.slice(start, start + rowsPerPage);
+  // }, [filteredEmployees, page, rowsPerPage]);
 
   const handleRowsPerPageChange = (event) => {
     setRowsPerPage(parseInt(event.target.value, 10));
@@ -249,7 +250,8 @@ export default function EmployeesClient() {
       )}
 
       <EmployeesTable
-        rows={paginatedEmployees}
+        // rows={paginatedEmployees}
+        rows={filteredEmployees}
         loading={loading}
         count={filteredEmployees.length}
         page={page}

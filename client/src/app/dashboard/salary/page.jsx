@@ -10,8 +10,9 @@ import { fetchEmployees } from "@/redux/store/employees/employeeThunk";
 import SalaryTable from "@/components/dashboard/salary/SalaryTable";
 import SalaryForm from "@/components/dashboard/salary/SalaryForm";
 import { fetchSalaries, addSalary, fetchSalaryById, updateSalary, deleteSalary } from "@/redux/store/salaries/salaryThunk";
-import CustomSnackbar from "@/components/ui/CustomSnackbar";
 import ConfirmationDialog from "@/components/ui/ConfirmationDialog";
+import { showToast } from "@/utils/toast";
+import { debounce, filter, find, get, includes, isEqual } from "lodash";
 
 export default function SalaryPage() {
   const dispatch = useDispatch();
@@ -29,12 +30,6 @@ export default function SalaryPage() {
     endDate: null,
   });
 
-  const [snackbar, setSnackbar] = useState({
-    open: false,
-    message: '',
-    severity: 'success',
-  });
-
   const [addingSalary, setAddingSalary] = useState(false);
   const [editSalaryId, setEditSalaryId] = useState(null);
 
@@ -47,20 +42,27 @@ export default function SalaryPage() {
     row: null,
   });
 
-  const showSnackbar = (message, severity = "success") => {
-    setSnackbar({ open: true, message, severity });
-  };
+  const handleSearchChange = useMemo(() =>
+    debounce((value) => {
+      setSearchQuery(value);
+    }, 100),
+    []
+  );
+
+  useEffect(() => {
+    return () => handleSearchChange.cancel();
+  }, [handleSearchChange]);
 
   const filteredSalaries = useMemo(() => {
     if (!searchQuery) return salaries;
 
-    return salaries.filter((salary) => {
-      const employeeName = employees.find(e => e._id === salary.employeeId)?.name || "";
-      return (
-        employeeName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (salary.employeeName || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (salary.description || "").toLowerCase().includes(searchQuery.toLowerCase())
-      );
+    const query = searchQuery.toLowerCase();
+
+    return filter(salaries, salary => {
+      const employeeName = get(find(employees, { _id: salary.employeeId }), 'name', '').toLowerCase();
+      return includes(employeeName, query) ||
+        includes((salary.employeeName || '').toLowerCase(), query) ||
+        includes((salary.description || '').toLowerCase(), query);
     });
   }, [searchQuery, salaries, employees]);
 
@@ -73,7 +75,7 @@ export default function SalaryPage() {
       ]);
     } catch (err) {
       console.error("Error fetching data:", err);
-      showSnackbar(err.message || "Failed to load employees and salaries", "error");
+      showToast(err?.message || "Failed to load employees and salaries", "error");
     }
   };
 
@@ -107,13 +109,13 @@ export default function SalaryPage() {
 
       await dispatch(action).unwrap();
 
-      showSnackbar(editSalaryId ? "Salary updated successfully!" : "Salary added successfully!");
+      showToast(editSalaryId ? "Salary updated successfully!" : "Salary added successfully!", "success");
 
       setOpenAddModal(false);
       setEditSalaryId(null);
       dispatch(fetchSalaries());
     } catch (err) {
-      showSnackbar(err?.message || "Something went wrong", "error");
+      showToast(err?.message || "Something went wrong", "error");
     } finally {
       setAddingSalary(false);
     }
@@ -133,41 +135,26 @@ export default function SalaryPage() {
     try {
       const result = await dispatch(deleteSalary({ id: confirmDialog.row._id }))?.unwrap();
       console.log("Delete result:", result);
-      showSnackbar(`Salary for ${confirmDialog.row?.employeeName} deleted successfully!`);
+      showToast(`Salary for ${confirmDialog.row?.employeeName} deleted successfully!`, "success");
 
       dispatch(fetchSalaries());
     } catch (err) {
       console.error("Delete error:", err);
-      showSnackbar(err?.message || "Failed to delete salary", "error");
+      showToast(err?.message || "Failed to delete salary", "error");
     } finally {
       setConfirmDialog({ open: false, row: null });
     }
   };
 
   const handleCloseSnackbar = () => setSnackbar(prev => ({ ...prev, open: false }));
+
+  const handleOpenAddSalary = () => {
+  setEditSalaryId(null);   // ensure add mode
+  setOpenAddModal(true);  // open modal
+};
+
   return (
     <Stack spacing={3}>
-      <Stack direction="row" spacing={3}>
-        <Stack spacing={1} sx={{ flex: '1 1 auto' }}>
-          <Typography variant="h4">Salaries</Typography>
-        </Stack>
-        <Button
-          variant="contained"
-          startIcon={<PlusIcon />}
-          onClick={() => {
-            setEditSalaryId(null);
-            setDateRange({ startDate: null, endDate: null });
-            setOpenAddModal(true);
-          }}
-        >
-          Add Salary
-        </Button>
-      </Stack>
-      <SearchInput
-        value={searchQuery}
-        onChange={(e) => setSearchQuery(e.target.value)}
-        placeholder="Search by employee"
-      />
       <SalaryTable
         // rows={salaries}
         rows={filteredSalaries}
@@ -175,6 +162,11 @@ export default function SalaryPage() {
         loading={loadingSalaries}
         onEdit={handleEditSalary}
         onDelete={handleDeleteSalary}
+        title="Salaries"
+        showAddButton={true}
+        showSearch={true}
+        searchPlaceholder="Search by employee"
+        onAddClick={handleOpenAddSalary}
       />
 
       <ConfirmationDialog
@@ -203,12 +195,6 @@ export default function SalaryPage() {
         editSalaryId={editSalaryId}
       />
 
-      <CustomSnackbar
-        open={snackbar.open}
-        message={snackbar.message}
-        severity={snackbar.severity}
-        onClose={handleCloseSnackbar}
-      />
     </Stack>
   );
 }

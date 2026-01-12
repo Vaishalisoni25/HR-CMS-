@@ -11,9 +11,12 @@ export default function AdjustmentTable({
   employees = [],
   onEdit,
   onDelete,
+   title,          // new
+  showAddButton,  // new
+  onAddClick,     // new
+  showSearch,     // new
+  searchPlaceholder, // new
 }) {
-  const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(5);
    const monthNames = [
     'January', 'February', 'March', 'April', 'May', 'June',
     'July', 'August', 'September', 'October', 'November', 'December'
@@ -38,11 +41,6 @@ export default function AdjustmentTable({
       __original: row,
     };
   });
-
-  const paginatedRows = mappedRows.slice(
-    page * rowsPerPage,
-    page * rowsPerPage + rowsPerPage
-  );
 
   const columns = [
     { key: 'employeeName', label: 'Employee Name' },
@@ -69,16 +67,13 @@ export default function AdjustmentTable({
   return (
     <CustomTable
       columns={columns}
-      rows={paginatedRows}
-      rowKey="_id" 
-      count={mappedRows.length}
-      page={page}
-      rowsPerPage={rowsPerPage}
-      onPageChange={(e, newPage) => setPage(newPage)}
-      onRowsPerPageChange={(e) => {
-        setRowsPerPage(parseInt(e.target.value, 10));
-        setPage(0);
-      }}
+      rows={mappedRows} 
+      rowKey="_id"
+      title={title}
+      showAddButton={showAddButton}
+      onAddClick={onAddClick}
+      showSearch={showSearch}
+      searchPlaceholder={searchPlaceholder}
     />
   );
 }
