@@ -49,15 +49,19 @@ export async function generateSalary(req, res) {
     if (!salaryStructure) {
       return res.status(400).json({ message: "Salary Structure not found" });
     }
-
-    const basicSalary = salaryStructure.basicPay;
-    const hra = salaryStructure.HRA || 0;
-    const specialAllowance = salaryStructure.specialAllowance || 0;
-
-    if (!basicSalary) {
-      return res.status(404).json({ message: " Basic Salary not found" });
+    if (!salaryStructure.grossSalary || salaryStructure.grossSalary <= 0) {
+      return res.status(400).json({
+        message: "Salary structure invalid: Gross Salary missing or invalid",
+      });
     }
-
+    let basicSalary = salaryStructure.basicPay;
+    let hra = salaryStructure.HRA || 0;
+    let specialAllowance = salaryStructure.specialAllowance || 0;
+    if (!basicSalary) {
+      return res.status(400).json({
+        message: "Salary structure invalid: Basic Pay missing",
+      });
+    }
     // ---------Other Adjustment --------
 
     const adjustment = await OtherAdjustment.find({
@@ -69,6 +73,7 @@ export async function generateSalary(req, res) {
     const totalAdjustment = adjustment.reduce((sum, adj) => {
       if (adj.type === "ADD") return sum + adj.amount;
       if (adj.type === "DEDUCT") return sum - adj.amount;
+
       return sum;
     }, 0);
 
@@ -76,7 +81,7 @@ export async function generateSalary(req, res) {
 
     const dayInMonth = new Date(y, m, 0).getDate();
 
-    const grossMonthly = basicSalary + hra + specialAllowance;
+    const grossMonthly = salaryStructure.grossSalary;
 
     const perDaySalary = grossMonthly / dayInMonth;
 
@@ -90,7 +95,7 @@ export async function generateSalary(req, res) {
       },
     });
 
-    if (!attendanceRecords.length === 0) {
+    if (attendanceRecords.length === 0) {
       return res.status(400).json({
         message: "Attendance not found for selected month",
       });
@@ -129,9 +134,7 @@ export async function generateSalary(req, res) {
     );
     //-------Total Earnings-------
     const totalEarning =
-      earnings[SALARY_COMPONENT.BASIC_SALARY] +
-      earnings[SALARY_STRUCTURE_COMPONENT.HRA] +
-      earnings[SALARY_STRUCTURE_COMPONENT.SPECIAL_ALLOWANCE] +
+      grossMonthly +
       earnings[SALARY_COMPONENT.OVERTIME] +
       earnings[SALARY_COMPONENT.BONUS] +
       earnings[SALARY_COMPONENT.LEAVE_ENCASHMENT] +
