@@ -44,7 +44,7 @@ export async function createEmployee(req, res, next) {
 export async function getEmployees(_req, res, next) {
   try {
     const employees = await Employee.find()
-      .populate("basicPay", "basicPay")
+      .populate("salaryStructureId", "grossSlary")
       .lean();
     res.json({
       succcess: true,
@@ -69,8 +69,8 @@ export async function getEmployeeById(req, res, next) {
     }
 
     const employee = await Employee.findById(empId).populate(
-      "basicPay",
-      "basicPay"
+      "salaryStructureId",
+      "grossSalary"
     );
     if (!employee) {
       return res.status(404).json({ message: "Employee not found" });

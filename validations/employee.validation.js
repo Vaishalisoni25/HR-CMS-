@@ -10,7 +10,7 @@ export const employeeSchema = z.object({
   allowedLeaves: z.number().optional(),
   position: z.string().optional(),
   employeeCode: z.string().optional(),
-  basicPay: z
+  salaryStructureId: z
     .string()
     .refine(
       (id) => mongoose.Types.ObjectId.isValid(id),

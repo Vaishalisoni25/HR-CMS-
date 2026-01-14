@@ -17,12 +17,14 @@ export const salaryGenerateSchema = z.object({
     bonus: z.coerce.number().min(0).optional(),
     leaveEncashment: z.coerce.number().min(0).optional(),
     otherAdjustment: z.coerce.number().min(0).optional(),
+    specialAllowance: z.coerce.number(),
   }),
 
   deductions: z.object({
     tds: z.coerce.number().min(0).optional(),
     lwp: z.coerce.number().min(0).optional(),
     pf: z.coerce.number().min(0).optional(),
+    professionalTax: z.coerce.number().min(0).optional(),
   }),
 
   status: z.enum(Object.values(SALARY_STATUS)).optional(),

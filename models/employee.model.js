@@ -19,7 +19,7 @@ const EmployeeSchema = new Schema({
     required: true,
     trim: true,
   },
-  basicPay: {
+  salaryStructureId: {
     type: Schema.Types.ObjectId,
     ref: "SalaryStructure",
     default: null,

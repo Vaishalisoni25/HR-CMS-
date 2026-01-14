@@ -15,14 +15,17 @@ const salarySchema = new Schema({
     basicSalary: { type: Number, required: true },
     overtime: { type: Number, default: 0 },
     bonus: { type: Number, default: 0 },
+    hra: { type: Number, default: 0 },
     leaveEncashment: { type: Number, default: 0 },
     otherAdjustment: { type: Number, default: 0 },
+    specialAllowance: { type: Number, default: 0 },
   },
 
   deductions: {
     tds: { type: Number, default: 0 },
     pf: { type: Number, default: 0 },
-    "lwp-deduction": { type: Number, default: 0 },
+    lwpDeduction: { type: Number, default: 0 },
+    professionalTax: { type: Number, default: 0 },
   },
 
   status: {

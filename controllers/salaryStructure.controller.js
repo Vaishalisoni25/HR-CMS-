@@ -3,15 +3,27 @@ import mongoose from "mongoose";
 import Employee from "../models/employee.model.js";
 import { validationMonthYear } from "../utils/date.js";
 
+function calculateSalaryStructure(totalSalary) {
+  const round = (n) => Math.round(n * 100) / 100;
+  const basicPay = round(totalSalary / 2);
+  const hra = round(basicPay / 2);
+  const specialAllowance = round(basicPay / 2);
+
+  return {
+    basicPay,
+    HRA: hra,
+    specialAllowance,
+    grossSalary: round(totalSalary),
+  };
+}
+
 export async function createSalaryStructure(req, res, next) {
   try {
     const {
       employeeId,
       month,
       year,
-      HRA,
-      basicPay,
-      specialAllowance,
+      grossSalary,
       startMonth,
       endMonth,
       status,
@@ -25,25 +37,32 @@ export async function createSalaryStructure(req, res, next) {
     if (!employee)
       return res.status(404).json({ message: "Employee not found" });
 
-    const finalGrossSalary = basicPay + HRA + specialAllowance;
+    if (!grossSalary) {
+      return res.status(400).json({ message: "grossSalary is required" });
+    }
 
-    const salarystructure = await SalaryStructure.create({
+    const calculated = calculateSalaryStructure(grossSalary);
+
+    const salaryStructure = await SalaryStructure.create({
       employeeId,
       name: employee.name,
       month,
       year,
-      HRA,
-      basicPay,
-      specialAllowance,
-      grossSalary: finalGrossSalary,
+      HRA: calculated.HRA,
+      basicPay: calculated.basicPay,
+      specialAllowance: calculated.specialAllowance,
+      grossSalary: calculated.grossSalary,
       startMonth,
       endMonth,
       status,
     });
+    await Employee.findByIdAndUpdate(employeeId, {
+      salaryStructureId: salaryStructure._id,
+    });
     res.status(201).json({
       success: true,
       message: "Salary created successfully",
-      data: salarystructure,
+      data: salaryStructure,
     });
   } catch (err) {
     next(err);
